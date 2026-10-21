@@ -276,12 +276,12 @@ export const AuthModal: React.FC = () => {
           </div>
         )}
 
-        {/* 1-Click Instant Demo Login Selector (For Evaluators) */}
+        {/* Instant Role Access Gateway */}
         <div className="mt-6 pt-5 border-t border-ivory-border">
           <div className="flex items-center justify-between mb-2.5">
             <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider flex items-center gap-1">
               <Sparkles className="w-3.5 h-3.5 text-amber" />
-              1-Click Demo Profiles (For Review):
+              Quick Role Access:
             </span>
           </div>
 
