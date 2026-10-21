@@ -1,0 +1,240 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    background-color: #F7F5F0;
+    color: #1F1D1A;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  #root {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+    letter-spacing: -0.025em;
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #E3DED4;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C4BEB2;
+}
+
+/* -------------------------------------------------------------
+ * APPLE-INSPIRED GLASSMORPHISM UTILITY CLASSES
+ * ------------------------------------------------------------- */
+
+/* Primary Translucent Glass Panel */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  box-shadow:
+    0 8px 32px rgba(24, 62, 53, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+/* Subtle Glass Surface for Cards & Pills */
+.glass-panel-subtle {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow:
+    0 4px 20px rgba(24, 62, 53, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* Glass Navigation Bar */
+.glass-nav {
+  background: rgba(247, 245, 240, 0.82);
+  border-bottom: 1px solid rgba(24, 62, 53, 0.07);
+  backdrop-filter: blur(20px) saturate(170%);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  box-shadow: 0 4px 24px rgba(24, 62, 53, 0.03);
+}
+
+/* Hero Smart Search Glass Container */
+.glass-search {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  box-shadow:
+    0 20px 48px -12px rgba(24, 62, 53, 0.12),
+    0 4px 16px rgba(0, 0, 0, 0.02),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+/* Floating Overlay Card */
+.glass-card-floating {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  box-shadow:
+    0 16px 36px -6px rgba(24, 62, 53, 0.14),
+    0 4px 12px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* Deep Forest Glass Panel for Footers / Contrast Cards */
+.glass-dark {
+  background: rgba(14, 36, 29, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  box-shadow: 0 24px 48px -12px rgba(8, 23, 18, 0.45);
+}
+
+/* -------------------------------------------------------------
+ * GLOBAL-GRADE LUXURY THEME & BACKGROUND EFFECTS
+ * ------------------------------------------------------------- */
+
+/* Architectural Dot Matrix Patterns */
+.bg-dot-grid {
+  background-image: radial-gradient(rgba(24, 62, 53, 0.08) 1.2px, transparent 1.2px);
+  background-size: 24px 24px;
+}
+
+.bg-dot-grid-dark {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1.2px, transparent 1.2px);
+  background-size: 24px 24px;
+}
+
+/* Cinematic Hero Gradient Overlay */
+.cinematic-hero-overlay {
+  background: linear-gradient(
+    180deg,
+    rgba(8, 23, 18, 0.82) 0%,
+    rgba(14, 36, 29, 0.68) 45%,
+    rgba(247, 245, 240, 0.95) 92%,
+    #F7F5F0 100%
+  );
+}
+
+/* Hero Glass Floating Island */
+.glass-hero-island {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  box-shadow:
+    0 24px 60px -15px rgba(8, 23, 18, 0.25),
+    0 8px 24px -4px rgba(24, 62, 53, 0.10),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 1.0);
+}
+
+/* Luxury Card with Specular Top Highlight */
+.glass-luxury {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.78) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  box-shadow:
+    0 12px 36px -8px rgba(24, 62, 53, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.02),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+/* Luminous Gradients */
+.text-gradient-gold {
+  background: linear-gradient(135deg, #F59E0B 0%, #D4AF37 50%, #FBBF24 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-emerald {
+  background: linear-gradient(135deg, #52B788 0%, #2D7A57 50%, #183E35 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-white {
+  background: linear-gradient(180deg, #FFFFFF 0%, rgba(255, 255, 255, 0.82) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Pulsing Shimmer Pill */
+.shimmer-pill {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer-pill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.25) 20%,
+    rgba(255, 255, 255, 0.5) 60%,
+    rgba(255, 255, 255, 0)
+  );
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Fallback for browsers that do not support backdrop-filter */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass-panel,
+  .glass-search,
+  .glass-card-floating,
+  .glass-hero-island,
+  .glass-luxury {
+    background: #FFFFFF;
+    border: 1px solid #EAE5D9;
+  }
+  .glass-nav {
+    background: #F7F5F0;
+    border-bottom: 1px solid #E5E0D4;
+  }
+  .glass-dark {
+    background: #183E35;
+  }
+}
+
+/* Respect user's reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
