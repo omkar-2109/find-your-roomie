@@ -185,6 +185,10 @@ export const ListingDetailPage: React.FC = () => {
             src={listing.photos[0]} 
             alt={listing.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=1000&q=80';
+            }}
           />
           <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
           <div className="absolute bottom-4 left-4 bg-forest-900/80 backdrop-blur-xs text-white text-xs font-medium px-3 py-1 rounded-lg flex items-center gap-1.5">
@@ -208,6 +212,10 @@ export const ListingDetailPage: React.FC = () => {
                 src={photo} 
                 alt={`${listing.title} ${i + 2}`} 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1000&q=80';
+                }}
               />
             </div>
           ))}
@@ -222,6 +230,10 @@ export const ListingDetailPage: React.FC = () => {
             src={listing.photos[listing.photos.length - 1]} 
             alt={`${listing.title} last`} 
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=1000&q=80';
+            }}
           />
           <div className="absolute inset-0 bg-forest-900/40 backdrop-blur-xs flex items-center justify-center text-white font-bold text-sm">
             View All Photos ({listing.photos.length})

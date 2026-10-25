@@ -62,6 +62,10 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
           alt={listing.title}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=1000&q=80';
+          }}
         />
 
         {/* Top Floating Badges */}
@@ -206,6 +210,10 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
               src={listing.host.avatar} 
               alt={listing.host.name} 
               className="w-8 h-8 rounded-full object-cover ring-2 ring-forest/10"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80';
+              }}
             />
           </div>
         </div>

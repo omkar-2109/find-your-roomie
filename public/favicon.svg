@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#183E35" />
+      <stop offset="100%" stop-color="#0F2621" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <!-- Background Rounded Squircle -->
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#grad)" stroke="#2D7A57" stroke-width="2" filter="url(#shadow)" />
+  <!-- Elegant Brand Letter 'R' -->
+  <text x="21" y="45" font-family="'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif" font-weight="900" font-size="38" fill="#F7F5F0">R</text>
+  <!-- Signature Amber Accent Dot -->
+  <circle cx="47" cy="42" r="5" fill="#D7A66A" />
+</svg>

@@ -27,7 +27,7 @@ const AppContent: React.FC = () => {
 
       {/* 3. Main Body Container with Desktop Left Rail */}
       <div className="flex-grow flex min-w-0 w-full">
-        {persona === 'consumer' && <LeftRail />}
+        {persona === 'consumer' && currentView !== 'landing' && <LeftRail />}
 
         <main className="flex-grow min-w-0 w-full">
           {persona === 'consumer' && (
@@ -36,6 +36,9 @@ const AppContent: React.FC = () => {
               {currentView === 'marketplace' && <MarketplacePage />}
               {currentView === 'listing-detail' && <ListingDetailPage />}
               {currentView === 'saved' && <SavedPage />}
+              {!['landing', 'marketplace', 'listing-detail', 'saved'].includes(currentView) && (
+                <LandingPage />
+              )}
             </>
           )}
 

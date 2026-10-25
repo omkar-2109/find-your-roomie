@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { ShieldCheck, CheckCircle2, HeartHandshake, FileCheck } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, HeartHandshake, FileCheck, X, Shield, Lock, Scale, Sparkles } from 'lucide-react';
 import { MetroCity } from '../../types';
 
 export const Footer: React.FC = () => {
   const { updateFilter, setCurrentView } = useApp();
+  const [legalModal, setLegalModal] = useState<'terms' | 'privacy' | 'safety' | 'rera' | null>(null);
 
   const handleCitySelect = (city: MetroCity, locality?: string) => {
     updateFilter('city', city);
@@ -136,14 +137,139 @@ export const Footer: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-6">
-            <a href="#terms" className="hover:text-white transition-colors">Terms of Service</a>
-            <a href="#privacy" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#safety" className="hover:text-white transition-colors">Safety Guidelines</a>
-            <a href="#rera" className="hover:text-white transition-colors">RERA Compliance</a>
+            <button onClick={() => setLegalModal('terms')} className="hover:text-white transition-colors">Terms of Service</button>
+            <button onClick={() => setLegalModal('privacy')} className="hover:text-white transition-colors">Privacy Policy</button>
+            <button onClick={() => setLegalModal('safety')} className="hover:text-white transition-colors">Safety Guidelines</button>
+            <button onClick={() => setLegalModal('rera')} className="hover:text-white transition-colors">RERA Compliance</button>
           </div>
         </div>
 
       </div>
+
+      {/* Interactive Compliance & Legal Modal */}
+      {legalModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="glass-panel bg-white/95 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-glass-float relative border border-white/90 text-neutral-900 max-h-[85vh] overflow-y-auto">
+            <button
+              onClick={() => setLegalModal(null)}
+              className="absolute top-4 right-4 p-2 text-neutral-400 hover:text-neutral-800 rounded-full hover:bg-neutral-100 transition-colors"
+              aria-label="Close modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Modal Navigation Tabs */}
+            <div className="flex items-center gap-2 border-b border-ivory-border pb-3 mb-5 text-xs font-semibold overflow-x-auto">
+              <button
+                onClick={() => setLegalModal('terms')}
+                className={`px-3 py-1.5 rounded-xl transition-all ${legalModal === 'terms' ? 'bg-forest text-white' : 'text-neutral-600 hover:bg-neutral-100'}`}
+              >
+                Terms of Service
+              </button>
+              <button
+                onClick={() => setLegalModal('privacy')}
+                className={`px-3 py-1.5 rounded-xl transition-all ${legalModal === 'privacy' ? 'bg-forest text-white' : 'text-neutral-600 hover:bg-neutral-100'}`}
+              >
+                Privacy & DPDP
+              </button>
+              <button
+                onClick={() => setLegalModal('safety')}
+                className={`px-3 py-1.5 rounded-xl transition-all ${legalModal === 'safety' ? 'bg-forest text-white' : 'text-neutral-600 hover:bg-neutral-100'}`}
+              >
+                Safety Guidelines
+              </button>
+              <button
+                onClick={() => setLegalModal('rera')}
+                className={`px-3 py-1.5 rounded-xl transition-all ${legalModal === 'rera' ? 'bg-forest text-white' : 'text-neutral-600 hover:bg-neutral-100'}`}
+              >
+                RERA Compliance
+              </button>
+            </div>
+
+            {/* Tab 1: Terms */}
+            {legalModal === 'terms' && (
+              <div className="space-y-4 text-xs leading-relaxed text-neutral-700">
+                <div className="flex items-center gap-2 text-forest font-bold text-base">
+                  <Scale className="w-5 h-5 text-forest" />
+                  <span>Roomzy Platform Terms & Zero-Brokerage Charter</span>
+                </div>
+                <p>
+                  <strong>1. Zero Brokerage Guarantee:</strong> Roomzy operates as a direct discovery and community formation platform. We strictly prohibit middleman brokerage charges on listings marked with the verified badge.
+                </p>
+                <p>
+                  <strong>2. Standardized 1-Month Deposit:</strong> Co-living units hosted under Roomzy Managed Living follow our unified 1-month security deposit standard. The deposit is held in escrow and returned within 7 business days of checkout inspection.
+                </p>
+                <p>
+                  <strong>3. Transparent Rent & Exit Notice:</strong> Standard agreement templates require a minimum 30-day notice prior to checkout, preventing unfair forfeiture of deposits.
+                </p>
+              </div>
+            )}
+
+            {/* Tab 2: Privacy */}
+            {legalModal === 'privacy' && (
+              <div className="space-y-4 text-xs leading-relaxed text-neutral-700">
+                <div className="flex items-center gap-2 text-forest font-bold text-base">
+                  <Lock className="w-5 h-5 text-forest" />
+                  <span>Privacy Policy & Digital Data Protection (DPDP)</span>
+                </div>
+                <p>
+                  <strong>1. Masked Identity Checks:</strong> Roomzy utilizes government-approved masked verification for Aadhaar. Only the last 4 digits are stored, and raw biometric or UID data is never recorded.
+                </p>
+                <p>
+                  <strong>2. Locality Radar Privacy:</strong> Exact building numbers and flat units are never broadcast publicly. Exact coordinates are unveiled only after an in-person or video tour is mutually confirmed by both parties.
+                </p>
+                <p>
+                  <strong>3. Zero Data Monetization:</strong> We do not sell user telephone numbers or corporate emails to third-party telemarketers or loan brokers.
+                </p>
+              </div>
+            )}
+
+            {/* Tab 3: Safety */}
+            {legalModal === 'safety' && (
+              <div className="space-y-4 text-xs leading-relaxed text-neutral-700">
+                <div className="flex items-center gap-2 text-forest font-bold text-base">
+                  <Shield className="w-5 h-5 text-forest-emerald" />
+                  <span>Resident Trust & Safety Guidelines</span>
+                </div>
+                <p>
+                  <strong>1. Dual Verification Requirement:</strong> Every active resident profile completes corporate email verification or verified government ID check prior to messaging.
+                </p>
+                <p>
+                  <strong>2. Tour Protocols:</strong> When scheduling in-person visits, both hosts and prospective flatmates receive automated SMS confirmation with verified host identity credentials.
+                </p>
+                <p>
+                  <strong>3. Zero Harassment & Non-Discrimination:</strong> Roomzy enforces a zero-tolerance policy against discrimination based on caste, religion, food choice, or sexual orientation.
+                </p>
+              </div>
+            )}
+
+            {/* Tab 4: RERA */}
+            {legalModal === 'rera' && (
+              <div className="space-y-4 text-xs leading-relaxed text-neutral-700">
+                <div className="flex items-center gap-2 text-forest font-bold text-base">
+                  <FileCheck className="w-5 h-5 text-forest" />
+                  <span>RERA & Model Tenancy Act Compliance</span>
+                </div>
+                <p>
+                  <strong>1. Tenancy Alignment:</strong> All digital agreements generated on Roomzy adhere to the principles of the Model Tenancy Act, establishing clear roles for owners and tenants regarding structural maintenance and day-to-day upkeep.
+                </p>
+                <p>
+                  <strong>2. Direct Lister Verification:</strong> Property listings posted by landlords undergo property ownership document checks before receiving the verified green badge.
+                </p>
+              </div>
+            )}
+
+            <div className="mt-6 pt-4 border-t border-ivory-border flex justify-end">
+              <button
+                onClick={() => setLegalModal(null)}
+                className="bg-forest hover:bg-forest-light text-white text-xs font-bold px-4 py-2 rounded-xl transition-all"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </footer>
   );
 };

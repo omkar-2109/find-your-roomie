@@ -40,13 +40,13 @@ interface AppContextType {
   currentUser: User | null;
   isAuthModalOpen: boolean;
   pendingAction: PendingAction | null;
-  openAuthModal: (action?: PendingAction) => void;
+  openAuthModal: (action?: PendingAction, callback?: () => void) => void;
   closeAuthModal: () => void;
   loginWithPhone: (phone: string, otp: string) => boolean;
   loginWithGoogle: () => void;
   loginAsDemo: (role: 'tenant' | 'host' | 'admin') => void;
   logout: () => void;
-  requireAuth: (action?: PendingAction) => boolean;
+  requireAuth: (action?: PendingAction, callback?: () => void) => boolean;
 
   // Filters & Search
   filters: FilterState;
@@ -129,11 +129,16 @@ export const DEMO_USERS: Record<'tenant' | 'host' | 'admin', User> = {
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Initialize from URL search params if present
+  const VALID_VIEWS: ViewType[] = ['landing', 'marketplace', 'listing-detail', 'saved', 'find-together'];
+  const VALID_PERSONAS: PersonaType[] = ['consumer', 'business', 'admin'];
+
+  // Initialize from URL search params if present with validation
   const getInitialState = () => {
     const params = new URLSearchParams(window.location.search);
-    const p = (params.get('persona') as PersonaType) || 'consumer';
-    const v = (params.get('view') as ViewType) || 'landing';
+    const rawP = params.get('persona') as PersonaType;
+    const rawV = params.get('view') as ViewType;
+    const p = VALID_PERSONAS.includes(rawP) ? rawP : 'consumer';
+    const v = VALID_VIEWS.includes(rawV) ? rawV : 'landing';
     const id = params.get('id') || (v === 'listing-detail' ? 'blr-room-1' : null);
     return { p, v, id };
   };
@@ -146,6 +151,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isMapSplitOpen, setIsMapSplitOpen] = useState<boolean>(true);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState<boolean>(false);
 
+  // Sync with browser Back and Forward navigation (popstate)
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const rawP = params.get('persona') as PersonaType;
+      const rawV = params.get('view') as ViewType;
+      const id = params.get('id');
+
+      if (rawP && VALID_PERSONAS.includes(rawP)) {
+        setPersonaState(rawP);
+      }
+      if (rawV && VALID_VIEWS.includes(rawV)) {
+        setCurrentViewState(rawV);
+      } else if (!rawV) {
+        setCurrentViewState('landing');
+      }
+      if (id) {
+        setSelectedListingId(id);
+      } else if (rawV !== 'listing-detail') {
+        setSelectedListingId(null);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   // Auth & Guest State (Default is null = Unauthenticated Guest)
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     try {
@@ -157,17 +189,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+  const [pendingCallback, setPendingCallback] = useState<(() => void) | null>(null);
 
-  const openAuthModal = (action?: PendingAction) => {
+  const openAuthModal = (action?: PendingAction, callback?: () => void) => {
     if (action) setPendingAction(action);
+    if (callback) setPendingCallback(() => callback);
     setIsAuthModalOpen(true);
   };
 
   const closeAuthModal = () => {
     setIsAuthModalOpen(false);
+    setPendingCallback(null);
   };
 
   const resumePendingAction = (user: User) => {
+    if (pendingCallback) {
+      pendingCallback();
+      setPendingCallback(null);
+    }
     if (pendingAction) {
       if (pendingAction.type === 'visit' && pendingAction.payload) {
         bookVisit(pendingAction.payload);
@@ -236,11 +275,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCurrentView('landing');
   };
 
-  const requireAuth = (action?: PendingAction): boolean => {
+  const requireAuth = (action?: PendingAction, callback?: () => void): boolean => {
     if (currentUser) {
+      callback?.();
       return true;
     }
-    openAuthModal(action);
+    openAuthModal(action, callback);
     return false;
   };
 
