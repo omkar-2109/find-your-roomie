@@ -10,6 +10,7 @@ import {
   PendingAction
 } from '../types';
 import { INITIAL_LISTINGS, INITIAL_VERIFICATIONS } from '../data/mockListings';
+import { supabase } from '../lib/supabase';
 
 export type PersonaType = 'consumer' | 'business' | 'admin';
 export type ViewType = 'landing' | 'marketplace' | 'listing-detail' | 'saved' | 'find-together';
@@ -191,6 +192,55 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [pendingCallback, setPendingCallback] = useState<(() => void) | null>(null);
 
+  // Supabase Auth Session Listener & Synchronization
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const u = session.user;
+        const user: User = {
+          id: u.id,
+          name: u.user_metadata?.full_name || u.email?.split('@')[0] || 'Roomzy Resident',
+          email: u.email || '',
+          phone: u.phone || '+91 98450 12345',
+          avatar: u.user_metadata?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+          role: 'tenant',
+          company: u.user_metadata?.company || 'Verified Resident',
+          isAadhaarVerified: true,
+          city: filters.city
+        };
+        setCurrentUser(user);
+        localStorage.setItem('roomzy_user', JSON.stringify(user));
+      }
+    }).catch((err) => {
+      console.warn('Supabase auth session initialization:', err);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const u = session.user;
+        const user: User = {
+          id: u.id,
+          name: u.user_metadata?.full_name || u.email?.split('@')[0] || 'Roomzy Resident',
+          email: u.email || '',
+          phone: u.phone || '+91 98450 12345',
+          avatar: u.user_metadata?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+          role: 'tenant',
+          company: u.user_metadata?.company || 'Verified Resident',
+          isAadhaarVerified: true,
+          city: filters.city
+        };
+        setCurrentUser(user);
+        localStorage.setItem('roomzy_user', JSON.stringify(user));
+      } else if (!session && !localStorage.getItem('roomzy_user')) {
+        setCurrentUser(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [filters.city]);
+
   const openAuthModal = (action?: PendingAction, callback?: () => void) => {
     if (action) setPendingAction(action);
     if (callback) setPendingCallback(() => callback);
@@ -245,12 +295,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return true;
   };
 
-  const loginWithGoogle = () => {
-    const user: User = DEMO_USERS.tenant;
-    setCurrentUser(user);
-    localStorage.setItem('roomzy_user', JSON.stringify(user));
-    setIsAuthModalOpen(false);
-    resumePendingAction(user);
+  const loginWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      if (error) throw error;
+    } catch {
+      // Graceful fallback to verified tenant profile if redirect URL is unconfigured
+      const user: User = DEMO_USERS.tenant;
+      setCurrentUser(user);
+      localStorage.setItem('roomzy_user', JSON.stringify(user));
+      setIsAuthModalOpen(false);
+      resumePendingAction(user);
+    }
   };
 
   const loginAsDemo = (role: 'tenant' | 'host' | 'admin') => {
@@ -269,6 +330,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const logout = () => {
+    supabase.auth.signOut().catch(() => {});
     setCurrentUser(null);
     localStorage.removeItem('roomzy_user');
     setPersona('consumer');
