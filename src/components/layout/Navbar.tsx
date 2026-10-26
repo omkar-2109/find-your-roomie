@@ -64,109 +64,100 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-30 glass-nav">
+    <nav className="sticky top-0 z-30 glass-nav bg-white/90 backdrop-blur-xl border-b border-stone-200/80 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-20">
+        <div className="flex items-center justify-between h-16 flex-nowrap gap-3">
           
-          {/* Logo & Brand Identity */}
-          <div className="flex items-center gap-4 sm:gap-8 min-w-0">
-            <button 
-              onClick={() => setCurrentView('landing')}
-              className="flex items-center gap-2 sm:gap-2.5 text-left group focus:outline-none shrink-0"
+          {/* 1. Left: Brand Lockup */}
+          <button 
+            onClick={() => setCurrentView('landing')}
+            className="flex items-center gap-2.5 text-left group focus:outline-none shrink-0"
+          >
+            <div className="w-8 h-8 rounded-xl bg-forest text-ivory flex items-center justify-center font-display font-extrabold text-base shadow-sm group-hover:scale-105 transition-transform">
+              R<span className="text-amber-light">.</span>
+            </div>
+            <span className="font-display font-black text-xl tracking-tight text-forest block leading-none">
+              ROOMZY
+            </span>
+          </button>
+
+          {/* 2. Center: Segmented Navigation Pill Island */}
+          <div className="hidden xl:flex items-center p-1 rounded-full bg-stone-100/90 border border-stone-200/70 shadow-2xs shrink-0">
+            <button
+              onClick={() => handleCategoryNav('all')}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+                currentView === 'marketplace' && filters.category === 'all'
+                  ? 'bg-white text-forest shadow-xs font-bold'
+                  : 'text-stone-600 hover:text-stone-900'
+              }`}
             >
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-forest text-ivory flex items-center justify-center font-display font-extrabold text-lg sm:text-xl shadow-md group-hover:scale-105 transition-transform">
-                R<span className="text-amber-light">.</span>
-              </div>
-              <div>
-                <span className="font-display font-bold text-xl sm:text-2xl tracking-tight text-forest block leading-none">
-                  ROOMZY
-                </span>
-                <span className="text-[9px] sm:text-[10px] uppercase font-semibold tracking-widest text-neutral-500 block mt-0.5">
-                  Shared Living
-                </span>
-              </div>
+              All Listings
             </button>
 
-            {/* Desktop Nav Links */}
-            <div className="hidden lg:flex items-center gap-1">
-              <button
-                onClick={() => handleCategoryNav('all')}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  currentView === 'marketplace' && filters.category === 'all'
-                    ? 'text-forest bg-forest-50 font-semibold'
-                    : 'text-neutral-600 hover:text-forest hover:bg-ivory-dark/60'
-                }`}
-              >
-                All Listings
-              </button>
+            <button
+              onClick={() => handleCategoryNav('rooms')}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+                currentView === 'marketplace' && filters.category === 'rooms'
+                  ? 'bg-white text-forest shadow-xs font-bold'
+                  : 'text-stone-600 hover:text-stone-900'
+              }`}
+            >
+              Rooms
+            </button>
 
-              <button
-                onClick={() => handleCategoryNav('rooms')}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  currentView === 'marketplace' && filters.category === 'rooms'
-                    ? 'text-forest bg-forest-50 font-semibold'
-                    : 'text-neutral-600 hover:text-forest hover:bg-ivory-dark/60'
-                }`}
-              >
-                Rooms
-              </button>
+            <button
+              onClick={() => handleCategoryNav('flatmates')}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+                currentView === 'marketplace' && filters.category === 'flatmates'
+                  ? 'bg-white text-forest shadow-xs font-bold'
+                  : 'text-stone-600 hover:text-stone-900'
+              }`}
+            >
+              Flatmates
+            </button>
 
-              <button
-                onClick={() => handleCategoryNav('flatmates')}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  currentView === 'marketplace' && filters.category === 'flatmates'
-                    ? 'text-forest bg-forest-50 font-semibold'
-                    : 'text-neutral-600 hover:text-forest hover:bg-ivory-dark/60'
-                }`}
-              >
-                Flatmates
-              </button>
+            <button
+              onClick={() => handleCategoryNav('groups')}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                currentView === 'marketplace' && filters.category === 'groups'
+                  ? 'bg-amber text-stone-900 font-bold shadow-xs'
+                  : 'text-stone-700 hover:text-amber-hover'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber fill-amber/20" />
+              <span>Find Together</span>
+            </button>
 
-              <button
-                onClick={() => handleCategoryNav('groups')}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors relative flex items-center gap-1.5 ${
-                  currentView === 'marketplace' && filters.category === 'groups'
-                    ? 'text-amber-hover bg-amber-soft font-semibold'
-                    : 'text-neutral-700 hover:text-amber-hover hover:bg-amber-soft/50'
-                }`}
-              >
-                <Sparkles className="w-3.5 h-3.5 text-amber" />
-                <span>Find Together</span>
-                <span className="bg-amber text-stone-900 text-[10px] font-bold px-1.5 py-0.2 rounded-full">
-                  Team Up
-                </span>
-              </button>
-
-              <button
-                onClick={() => handleCategoryNav('pgs')}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  currentView === 'marketplace' && filters.category === 'pgs'
-                    ? 'text-forest bg-forest-50 font-semibold'
-                    : 'text-neutral-600 hover:text-forest hover:bg-ivory-dark/60'
-                }`}
-              >
-                PGs & Co-Living
-              </button>
-            </div>
+            <button
+              onClick={() => handleCategoryNav('pgs')}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+                currentView === 'marketplace' && filters.category === 'pgs'
+                  ? 'bg-white text-forest shadow-xs font-bold'
+                  : 'text-stone-600 hover:text-stone-900'
+              }`}
+            >
+              PGs & Co-Living
+            </button>
           </div>
 
-          {/* Right Action Controls */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* Desktop City Switcher Dropdown */}
-            <div className="relative" ref={cityDropdownRef}>
+          {/* 3. Right: Unified Action Cluster */}
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 flex-nowrap">
+            
+            {/* City Switcher Pill */}
+            <div className="relative shrink-0" ref={cityDropdownRef}>
               <button
                 onClick={() => setCityDropdownOpen(prev => !prev)}
-                className="flex items-center gap-1.5 bg-white hover:bg-ivory-dark text-neutral-800 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold border border-ivory-border transition-all shadow-xs"
+                className="flex items-center gap-1.5 bg-white hover:bg-stone-50 text-stone-800 px-3 py-1.5 rounded-full text-xs font-bold border border-stone-200/90 shadow-2xs transition-all whitespace-nowrap"
                 title="Change active metro city"
               >
-                <MapPin className="w-4 h-4 text-forest" />
+                <MapPin className="w-3.5 h-3.5 text-forest" />
                 <span>{filters.city}</span>
-                <ChevronDown className={`w-3.5 h-3.5 text-neutral-400 transition-transform ${cityDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3 h-3 text-stone-400 transition-transform ${cityDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {cityDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 glass-panel bg-white/95 rounded-2xl p-2 shadow-glass-float border border-white/90 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                  <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider px-2 py-1">
+                <div className="absolute right-0 mt-2 w-48 bg-white/95 backdrop-blur-xl rounded-2xl p-1.5 shadow-xl border border-stone-200/90 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wider px-2.5 py-1">
                     Select Metro
                   </p>
                   {(['Bengaluru', 'Mumbai', 'Delhi-NCR', 'Pune', 'Hyderabad'] as MetroCity[]).map((city) => (
@@ -179,46 +170,45 @@ export const Navbar: React.FC = () => {
                       className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors ${
                         filters.city === city
                           ? 'bg-forest text-white shadow-xs'
-                          : 'text-neutral-700 hover:bg-forest-50 hover:text-forest'
+                          : 'text-stone-700 hover:bg-stone-100 hover:text-stone-900'
                       }`}
                     >
                       <span>{city}</span>
-                      {filters.city === city && <span className="text-[10px] bg-white/20 px-1.5 py-0.2 rounded-full">Active</span>}
+                      {filters.city === city && <span className="text-[10px] bg-white/20 px-1.5 py-0.2 rounded-full font-bold">Active</span>}
                     </button>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Search Quick Button */}
+            {/* Quick Search Icon Button */}
             <button
               onClick={() => setCurrentView('marketplace')}
-              className="hidden md:flex items-center gap-2 bg-ivory-dark hover:bg-ivory-warm text-neutral-600 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium border border-ivory-border transition-colors shadow-xs"
-              title="Search localities or budget"
+              className="w-8 h-8 rounded-full bg-white hover:bg-stone-50 text-stone-700 flex items-center justify-center border border-stone-200/90 shadow-2xs transition-all shrink-0"
+              title="Search listings"
             >
-              <Search className="w-4 h-4 text-forest" />
-              <span>Search in {filters.city}</span>
+              <Search className="w-3.5 h-3.5 text-forest" />
             </button>
 
-            {/* Saved Favorites (Desktop / Tablet) */}
+            {/* Saved Favorites Pill */}
             <button
               onClick={() => setCurrentView('saved')}
-              className={`hidden sm:flex p-2.5 rounded-xl border border-ivory-border transition-colors relative ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border transition-all shadow-2xs shrink-0 text-xs font-bold ${
                 currentView === 'saved'
-                  ? 'bg-forest-50 border-forest-200 text-forest'
-                  : 'bg-white hover:bg-ivory-dark text-neutral-600'
+                  ? 'bg-forest-50 border-forest-300 text-forest'
+                  : 'bg-white hover:bg-stone-50 border-stone-200/90 text-stone-700'
               }`}
-              title="Saved Listings & Visits"
+              title="Saved Listings"
             >
-              <Heart className={`w-4 h-4 ${favorites.length > 0 ? 'fill-rose-500 text-rose-500' : ''}`} />
+              <Heart className={`w-3.5 h-3.5 ${favorites.length > 0 ? 'fill-rose-500 text-rose-500' : 'text-stone-500'}`} />
               {favorites.length > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow-xs">
+                <span className="text-[11px] font-extrabold text-stone-800 leading-none">
                   {favorites.length}
                 </span>
               )}
             </button>
 
-            {/* List Property / Host CTA */}
+            {/* List Space / Host CTA */}
             <button
               onClick={() => {
                 if (currentUser && (currentUser.role === 'host' || currentUser.role === 'admin')) {
@@ -227,46 +217,49 @@ export const Navbar: React.FC = () => {
                   openAuthModal({ type: 'host' });
                 }
               }}
-              className="hidden md:flex items-center gap-1.5 bg-white hover:bg-ivory-dark text-forest border border-forest/20 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-xs"
+              className="hidden sm:inline-flex items-center gap-1.5 bg-forest hover:bg-forest-light text-white px-3.5 py-1.5 rounded-full text-xs font-bold shadow-xs hover:shadow-sm transition-all shrink-0 whitespace-nowrap"
             >
-              <PlusCircle className="w-4 h-4 text-forest" />
-              <span>List Property</span>
+              <PlusCircle className="w-3.5 h-3.5 text-amber-light" />
+              <span>List Space</span>
             </button>
 
-            {/* Authentication Gateway: Guest Login vs Logged In Profile */}
+            {/* Authentication Gateway: User Profile Pill vs Guest Login */}
             {currentUser ? (
-              /* Logged In User Dropdown */
-              <div className="relative" ref={dropdownRef}>
+              <div className="relative shrink-0" ref={dropdownRef}>
                 <button
                   onClick={() => setUserDropdownOpen(prev => !prev)}
-                  className="flex items-center gap-2 bg-white hover:bg-ivory-dark p-1.5 pr-2.5 rounded-2xl border border-ivory-border transition-all shadow-xs"
+                  className="flex items-center gap-2 bg-white hover:bg-stone-50 p-1 pl-1.5 pr-2.5 rounded-full border border-stone-200/90 transition-all shadow-2xs shrink-0"
                 >
-                  <img
-                    src={currentUser.avatar}
-                    alt={currentUser.name}
-                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover ring-1 ring-forest/20"
-                  />
-                  <div className="hidden sm:block text-left">
-                    <span className="text-xs font-bold text-neutral-900 block leading-tight truncate max-w-[100px]">
-                      {currentUser.name.split(' ')[0]}
-                    </span>
-                    <span className="text-[10px] text-forest-emerald font-semibold flex items-center gap-0.5">
-                      <ShieldCheck className="w-2.5 h-2.5" />
-                      {currentUser.role}
-                    </span>
+                  <div className="relative">
+                    <img
+                      src={currentUser.avatar}
+                      alt={currentUser.name}
+                      className="w-7 h-7 rounded-full object-cover ring-1 ring-forest/30"
+                    />
+                    {currentUser.isAadhaarVerified && (
+                      <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+                    )}
                   </div>
-                  <ChevronDown className="w-3.5 h-3.5 text-neutral-400" />
+                  <span className="text-xs font-bold text-stone-800 hidden md:inline-block truncate max-w-[85px] leading-none">
+                    {currentUser.name.split(' ')[0]}
+                  </span>
+                  <ChevronDown className={`w-3 h-3 text-stone-400 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {/* Profile Dropdown Menu */}
                 {userDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-64 glass-panel bg-white/95 rounded-2xl p-3 shadow-glass-float border border-white/90 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                    <div className="p-2 border-b border-ivory-border/80">
-                      <p className="font-bold text-xs text-neutral-900">{currentUser.name}</p>
-                      <p className="text-[11px] text-neutral-500 truncate">{currentUser.email}</p>
-                      <span className="inline-flex items-center gap-1 text-[10px] text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded-full mt-1.5 border border-emerald-200">
-                        <ShieldCheck className="w-3 h-3 text-forest-emerald" /> Aadhaar KYC Verified
-                      </span>
+                  <div className="absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-xl rounded-2xl p-3 shadow-xl border border-stone-200/90 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div className="p-2 border-b border-stone-100">
+                      <p className="font-bold text-xs text-stone-900">{currentUser.name}</p>
+                      <p className="text-[11px] text-stone-500 truncate">{currentUser.email}</p>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className="inline-flex items-center gap-1 text-[10px] text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                          <ShieldCheck className="w-3 h-3 text-emerald-600" /> Aadhaar Verified
+                        </span>
+                        <span className="text-[10px] text-stone-500 font-semibold capitalize px-2 py-0.5 rounded-full bg-stone-100">
+                          {currentUser.role}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="py-2 space-y-1">
@@ -279,7 +272,7 @@ export const Navbar: React.FC = () => {
                       >
                         <span className="flex items-center gap-2">
                           <Sparkles className="w-3.5 h-3.5 text-forest-emerald" />
-                          KYC & Vibe Onboarding
+                          KYC & Lifestyle Profile
                         </span>
                         <span className="text-[10px] text-forest-emerald font-bold bg-white px-1.5 py-0.5 rounded-full border border-forest-200">
                           Edit
@@ -291,13 +284,13 @@ export const Navbar: React.FC = () => {
                           setCurrentView('saved');
                           setUserDropdownOpen(false);
                         }}
-                        className="w-full text-left px-2.5 py-1.5 rounded-xl text-xs text-neutral-700 hover:bg-ivory-dark flex items-center justify-between"
+                        className="w-full text-left px-2.5 py-1.5 rounded-xl text-xs text-stone-700 hover:bg-stone-50 flex items-center justify-between"
                       >
                         <span className="flex items-center gap-2">
                           <CalendarCheck className="w-3.5 h-3.5 text-forest" />
                           My Scheduled Visits
                         </span>
-                        <span className="text-[10px] font-bold text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded-full">
+                        <span className="text-[10px] font-bold text-stone-500 bg-stone-100 px-1.5 py-0.5 rounded-full">
                           {scheduledVisits.length}
                         </span>
                       </button>
@@ -307,7 +300,7 @@ export const Navbar: React.FC = () => {
                           setCurrentView('saved');
                           setUserDropdownOpen(false);
                         }}
-                        className="w-full text-left px-2.5 py-1.5 rounded-xl text-xs text-neutral-700 hover:bg-ivory-dark flex items-center justify-between"
+                        className="w-full text-left px-2.5 py-1.5 rounded-xl text-xs text-stone-700 hover:bg-stone-50 flex items-center justify-between"
                       >
                         <span className="flex items-center gap-2">
                           <Heart className="w-3.5 h-3.5 text-rose-500" />
@@ -323,13 +316,13 @@ export const Navbar: React.FC = () => {
                           setPersona('business');
                           setUserDropdownOpen(false);
                         }}
-                        className="w-full text-left px-2.5 py-1.5 rounded-xl text-xs text-neutral-700 hover:bg-ivory-dark flex items-center justify-between"
+                        className="w-full text-left px-2.5 py-1.5 rounded-xl text-xs text-stone-700 hover:bg-stone-50 flex items-center justify-between"
                       >
                         <span className="flex items-center gap-2">
                           <Building2 className="w-3.5 h-3.5 text-amber-hover" />
                           Host / PG SaaS Workspace
                         </span>
-                        <ArrowRight className="w-3 h-3 text-neutral-400" />
+                        <ArrowRight className="w-3 h-3 text-stone-400" />
                       </button>
 
                       <button
@@ -337,21 +330,14 @@ export const Navbar: React.FC = () => {
                           setPersona('admin');
                           setUserDropdownOpen(false);
                         }}
-                        className="w-full text-left px-2.5 py-1.5 rounded-xl text-xs text-neutral-700 hover:bg-ivory-dark flex items-center justify-between"
+                        className="w-full text-left px-2.5 py-1.5 rounded-xl text-xs text-stone-700 hover:bg-stone-50 flex items-center justify-between"
                       >
                         <span className="flex items-center gap-2">
                           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                           Admin Verification Desk
                         </span>
-                        <ArrowRight className="w-3 h-3 text-neutral-400" />
+                        <ArrowRight className="w-3 h-3 text-stone-400" />
                       </button>
-                    </div>
-
-                    <div className="pt-2 border-t border-ivory-border/80 flex items-center justify-between text-[11px]">
-                      <span className="text-neutral-400">Account Role:</span>
-                      <span className="font-bold text-forest capitalize px-2 py-0.5 rounded-md bg-forest-50 border border-forest-100">
-                        {currentUser?.role || 'tenant'}
-                      </span>
                     </div>
 
                     <button
@@ -359,7 +345,7 @@ export const Navbar: React.FC = () => {
                         logout();
                         setUserDropdownOpen(false);
                       }}
-                      className="w-full mt-2 pt-2 border-t border-ivory-border/80 text-left px-2.5 py-1.5 rounded-xl text-xs text-rose-600 hover:bg-rose-50 font-semibold flex items-center gap-2"
+                      className="w-full mt-1 pt-2 border-t border-stone-100 text-left px-2.5 py-1.5 rounded-xl text-xs text-rose-600 hover:bg-rose-50 font-semibold flex items-center gap-2"
                     >
                       <LogOut className="w-3.5 h-3.5" />
                       <span>Log Out</span>
@@ -368,26 +354,23 @@ export const Navbar: React.FC = () => {
                 )}
               </div>
             ) : (
-              /* Public Unauthenticated Guest Login Button */
+              /* Public Guest Login Button */
               <button
                 onClick={() => openAuthModal()}
-                className="bg-forest hover:bg-forest-light text-white px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-soft hover:shadow-card transition-all flex items-center gap-1.5"
+                className="bg-forest hover:bg-forest-light text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-xs hover:shadow-sm transition-all flex items-center gap-1.5 shrink-0 whitespace-nowrap"
               >
                 <User className="w-3.5 h-3.5 text-amber-light" />
-                <span>
-                  <span className="hidden sm:inline">Login / Sign Up</span>
-                  <span className="sm:hidden">Login</span>
-                </span>
+                <span>Login</span>
               </button>
             )}
 
-            {/* Mobile Hamburger Menu Toggle */}
+            {/* Mobile / Tablet Hamburger Menu Toggle */}
             <button
               onClick={() => setMobileMenuOpen(prev => !prev)}
-              className="lg:hidden p-2.5 rounded-xl border border-ivory-border bg-white text-neutral-700 hover:bg-ivory-dark"
+              className="xl:hidden p-2 rounded-full border border-stone-200/90 bg-white text-stone-700 hover:bg-stone-50 shrink-0"
               aria-label="Toggle navigation menu"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </button>
           </div>
         </div>
@@ -395,7 +378,7 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Drawer Dropdown */}
       {mobileMenuOpen && (
-        <div className="lg:hidden glass-panel border-b border-ivory-border/70 px-4 py-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200 shadow-glass">
+        <div className="xl:hidden glass-panel border-b border-ivory-border/70 px-4 py-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200 shadow-glass">
           
           {/* Guest Login Banner or User Profile Header */}
           {currentUser ? (
