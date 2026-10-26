@@ -17,9 +17,10 @@ import {
   LogOut,
   ChevronDown,
   Building2,
-  CalendarCheck
+  CalendarCheck,
+  MapPin
 } from 'lucide-react';
-import { CategoryType } from '../../types';
+import { CategoryType, MetroCity } from '../../types';
 
 export const Navbar: React.FC = () => {
   const { 
@@ -38,13 +39,18 @@ export const Navbar: React.FC = () => {
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const cityDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setUserDropdownOpen(false);
+      }
+      if (cityDropdownRef.current && !cityDropdownRef.current.contains(event.target as Node)) {
+        setCityDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -146,10 +152,48 @@ export const Navbar: React.FC = () => {
 
           {/* Right Action Controls */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Desktop City Switcher Dropdown */}
+            <div className="relative" ref={cityDropdownRef}>
+              <button
+                onClick={() => setCityDropdownOpen(prev => !prev)}
+                className="flex items-center gap-1.5 bg-white hover:bg-ivory-dark text-neutral-800 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold border border-ivory-border transition-all shadow-xs"
+                title="Change active metro city"
+              >
+                <MapPin className="w-4 h-4 text-forest" />
+                <span>{filters.city}</span>
+                <ChevronDown className={`w-3.5 h-3.5 text-neutral-400 transition-transform ${cityDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {cityDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 glass-panel bg-white/95 rounded-2xl p-2 shadow-glass-float border border-white/90 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider px-2 py-1">
+                    Select Metro
+                  </p>
+                  {(['Bengaluru', 'Mumbai', 'Delhi-NCR', 'Pune', 'Hyderabad'] as MetroCity[]).map((city) => (
+                    <button
+                      key={city}
+                      onClick={() => {
+                        updateFilter('city', city);
+                        setCityDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors ${
+                        filters.city === city
+                          ? 'bg-forest text-white shadow-xs'
+                          : 'text-neutral-700 hover:bg-forest-50 hover:text-forest'
+                      }`}
+                    >
+                      <span>{city}</span>
+                      {filters.city === city && <span className="text-[10px] bg-white/20 px-1.5 py-0.2 rounded-full">Active</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Search Quick Button */}
             <button
               onClick={() => setCurrentView('marketplace')}
-              className="hidden sm:flex items-center gap-2 bg-ivory-dark hover:bg-ivory-warm text-neutral-600 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium border border-ivory-border transition-colors shadow-xs"
+              className="hidden md:flex items-center gap-2 bg-ivory-dark hover:bg-ivory-warm text-neutral-600 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium border border-ivory-border transition-colors shadow-xs"
               title="Search localities or budget"
             >
               <Search className="w-4 h-4 text-forest" />
@@ -411,6 +455,37 @@ export const Navbar: React.FC = () => {
               </button>
             </div>
           )}
+
+          {/* Mobile City Quick Switcher */}
+          <div className="p-3 bg-white rounded-2xl border border-ivory-border">
+            <div className="flex items-center justify-between mb-2 text-xs font-bold text-neutral-800">
+              <span className="flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-forest" />
+                <span>Active Metro City</span>
+              </span>
+              <span className="text-[10px] text-forest font-bold bg-forest-50 px-2 py-0.5 rounded-full border border-forest-100">
+                {filters.city}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              {(['Bengaluru', 'Mumbai', 'Delhi-NCR', 'Pune', 'Hyderabad'] as MetroCity[]).map((city) => (
+                <button
+                  key={city}
+                  onClick={() => {
+                    updateFilter('city', city);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`py-1.5 px-2 rounded-xl text-[11px] font-bold border transition-all text-center ${
+                    filters.city === city
+                      ? 'bg-forest text-white border-forest shadow-xs'
+                      : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-200'
+                  }`}
+                >
+                  {city}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* Navigation Links Grid */}
           <div className="grid grid-cols-2 gap-2 pb-2 border-b border-ivory-border/60">
