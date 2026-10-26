@@ -7,7 +7,10 @@ import {
   InquiryMessage, 
   VerificationRequest,
   User,
-  PendingAction
+  PendingAction,
+  FlatmateProfile,
+  ChatMessage,
+  Conversation
 } from '../types';
 import { supabase } from '../lib/supabase';
 import { 
@@ -17,6 +20,17 @@ import {
   submitInquiry as apiSubmitInquiry,
   seedStarterListings
 } from '../services/listingService';
+import {
+  fetchUserConversations,
+  fetchConversationMessages,
+  sendChatMessage,
+  getOrCreateConversation
+} from '../services/chatService';
+import {
+  fetchFlatmateProfiles,
+  saveUserFlatmateProfile,
+  calculateLifestyleMatch
+} from '../services/flatmateService';
 
 export type PersonaType = 'consumer' | 'business' | 'admin';
 export type ViewType = 'landing' | 'marketplace' | 'listing-detail' | 'saved' | 'find-together' | 'oauth-consent';
@@ -96,6 +110,22 @@ interface AppContextType {
   approveVerification: (id: string) => void;
   rejectVerification: (id: string) => void;
   updateInquiryStatus: (id: string, status: InquiryMessage['status']) => void;
+
+  // In-App Direct Chat Hub
+  conversations: Conversation[];
+  activeConversationId: string | null;
+  setActiveConversationId: (id: string | null) => void;
+  activeMessages: ChatMessage[];
+  isChatOpen: boolean;
+  unreadMessagesCount: number;
+  openChat: (conversationId?: string, targetUser?: { id: string; name: string; avatar: string; role: string }, listingContext?: { id: string; title: string }) => Promise<void>;
+  closeChat: () => void;
+  sendMessage: (text: string, type?: 'text' | 'teamup_proposal', metadata?: any) => Promise<void>;
+
+  // Roommate Finding & Lifestyle Matching
+  flatmateProfiles: FlatmateProfile[];
+  saveFlatmateProfile: (profile: Partial<FlatmateProfile>) => Promise<void>;
+  calculateMatchScore: (candidateLifestyle?: any) => number;
 }
 
 const DEFAULT_FILTERS: FilterState = {
@@ -522,10 +552,158 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const setPersona = (p: PersonaType) => {
+    // 1. Strict RBAC Gate for Admin: Only user with role === 'admin' can access Admin Desk
+    if (p === 'admin') {
+      if (!currentUser || currentUser.role !== 'admin') {
+        console.warn('Unauthorized access: Admin clearance required.');
+        return;
+      }
+    }
+    // 2. Strict RBAC Gate for Host Workspace: Only user with role === 'host' | 'admin' can access
+    if (p === 'business') {
+      if (!currentUser || (currentUser.role !== 'host' && currentUser.role !== 'admin')) {
+        console.warn('Tenant access redirected to Host Onboarding Wizard.');
+        openOnboardingModal('host');
+        return;
+      }
+    }
+
     setPersonaState(p);
     const url = new URL(window.location.href);
     url.searchParams.set('persona', p);
     window.history.pushState({}, '', url.toString());
+  };
+
+  // ---------------------------------------------------------------------------
+  // In-App Direct Chat Hub State & Methods
+  // ---------------------------------------------------------------------------
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [activeMessages, setActiveMessages] = useState<ChatMessage[]>([]);
+  const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
+
+  // Load user conversations on auth change
+  useEffect(() => {
+    fetchUserConversations(currentUser).then(list => {
+      setConversations(list);
+      if (list.length > 0 && !activeConversationId) {
+        setActiveConversationId(list[0].id);
+      }
+    });
+  }, [currentUser]);
+
+  // Load messages when active conversation changes
+  useEffect(() => {
+    if (activeConversationId) {
+      fetchConversationMessages(activeConversationId).then(msgs => {
+        setActiveMessages(msgs);
+      });
+    } else {
+      setActiveMessages([]);
+    }
+  }, [activeConversationId]);
+
+  const openChat = async (
+    conversationId?: string,
+    targetUser?: { id: string; name: string; avatar: string; role: string },
+    listingContext?: { id: string; title: string }
+  ) => {
+    if (targetUser && currentUser) {
+      const conv = await getOrCreateConversation(currentUser, targetUser, listingContext);
+      setConversations(prev => {
+        const exists = prev.find(c => c.id === conv.id);
+        if (exists) return prev;
+        return [conv, ...prev];
+      });
+      setActiveConversationId(conv.id);
+    } else if (conversationId) {
+      setActiveConversationId(conversationId);
+    } else if (conversations.length > 0) {
+      setActiveConversationId(conversations[0].id);
+    }
+    setIsChatOpen(true);
+  };
+
+  const closeChat = () => {
+    setIsChatOpen(false);
+  };
+
+  const sendMessage = async (
+    text: string,
+    type: 'text' | 'teamup_proposal' = 'text',
+    metadata?: any
+  ) => {
+    if (!activeConversationId) return;
+
+    const sender = currentUser || {
+      id: 'current-user-id',
+      name: 'You',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+      role: 'tenant'
+    };
+
+    const newMsg = await sendChatMessage(activeConversationId, {
+      senderId: sender.id,
+      senderName: sender.name,
+      senderAvatar: sender.avatar,
+      text,
+      type,
+      metadata
+    });
+
+    setActiveMessages(prev => [...prev, newMsg]);
+
+    // Update conversation in list
+    setConversations(prev => prev.map(c => {
+      if (c.id === activeConversationId) {
+        return {
+          ...c,
+          lastMessage: type === 'teamup_proposal' ? '📋 Sent a Team Up proposal' : text,
+          lastMessageAt: 'Just now'
+        };
+      }
+      return c;
+    }));
+  };
+
+  const unreadMessagesCount = conversations.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
+
+  // ---------------------------------------------------------------------------
+  // Roommate & Flatmate Finding Profiles State & Methods
+  // ---------------------------------------------------------------------------
+  const [flatmateProfiles, setFlatmateProfiles] = useState<FlatmateProfile[]>([]);
+
+  useEffect(() => {
+    fetchFlatmateProfiles(filters.city).then(profiles => {
+      setFlatmateProfiles(profiles);
+    });
+  }, [filters.city]);
+
+  const saveFlatmateProfile = async (profileData: Partial<FlatmateProfile>) => {
+    const saved = await saveUserFlatmateProfile({
+      ...profileData,
+      userId: currentUser?.id || 'current-user-id',
+      name: currentUser?.name || profileData.name || 'Roomzy Resident',
+      avatar: currentUser?.avatar || profileData.avatar,
+      city: filters.city
+    });
+
+    setFlatmateProfiles(prev => {
+      const idx = prev.findIndex(p => p.id === saved.id || p.userId === saved.userId);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = saved;
+        return copy;
+      }
+      return [saved, ...prev];
+    });
+  };
+
+  const calculateMatchScore = (candidateLifestyle?: any) => {
+    return calculateLifestyleMatch(
+      currentUser?.userCategory ? { wfhFriendly: true, dietary: 'Flexible' } : undefined,
+      candidateLifestyle
+    );
   };
 
   const setCurrentView = (v: ViewType) => {
@@ -698,7 +876,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       verifications,
       approveVerification,
       rejectVerification,
-      updateInquiryStatus
+      updateInquiryStatus,
+
+      // In-App Direct Chat Hub
+      conversations,
+      activeConversationId,
+      setActiveConversationId,
+      activeMessages,
+      isChatOpen,
+      unreadMessagesCount,
+      openChat,
+      closeChat,
+      sendMessage,
+
+      // Roommate Finding & Lifestyle Matching
+      flatmateProfiles,
+      saveFlatmateProfile,
+      calculateMatchScore
     }}>
       {children}
     </AppContext.Provider>

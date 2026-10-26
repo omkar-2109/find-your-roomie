@@ -18,7 +18,8 @@ import {
   ChevronDown,
   Building2,
   CalendarCheck,
-  MapPin
+  MapPin,
+  MessageSquare
 } from 'lucide-react';
 import { CategoryType, MetroCity } from '../../types';
 
@@ -34,7 +35,9 @@ export const Navbar: React.FC = () => {
     currentUser,
     openAuthModal,
     openOnboardingModal,
-    logout
+    logout,
+    openChat,
+    unreadMessagesCount
   } = useApp();
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -208,11 +211,31 @@ export const Navbar: React.FC = () => {
               )}
             </button>
 
+            {/* In-App Direct Chat Pill */}
+            <button
+              onClick={() => openChat()}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-stone-200/90 bg-white hover:bg-stone-50 transition-all shadow-2xs shrink-0 text-xs font-bold text-stone-700"
+              title="Direct Messages & Roommate Chats"
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-forest-emerald" />
+              {unreadMessagesCount > 0 ? (
+                <span className="text-[10px] font-extrabold text-white bg-rose-500 px-1.5 py-0.2 rounded-full leading-none">
+                  {unreadMessagesCount}
+                </span>
+              ) : (
+                <span className="hidden md:inline text-stone-700 font-semibold text-xs">
+                  Chats
+                </span>
+              )}
+            </button>
+
             {/* List Space / Host CTA */}
             <button
               onClick={() => {
                 if (currentUser && (currentUser.role === 'host' || currentUser.role === 'admin')) {
                   setPersona('business');
+                } else if (currentUser) {
+                  openOnboardingModal('host');
                 } else {
                   openAuthModal({ type: 'host' });
                 }
@@ -263,6 +286,25 @@ export const Navbar: React.FC = () => {
                     </div>
 
                     <div className="py-2 space-y-1">
+                      {/* Direct In-App Chat Link */}
+                      <button
+                        onClick={() => {
+                          openChat();
+                          setUserDropdownOpen(false);
+                        }}
+                        className="w-full text-left px-2.5 py-1.5 rounded-xl text-xs text-stone-700 hover:bg-stone-50 flex items-center justify-between"
+                      >
+                        <span className="flex items-center gap-2">
+                          <MessageSquare className="w-3.5 h-3.5 text-forest-emerald" />
+                          Messages & Roommate Chats
+                        </span>
+                        {unreadMessagesCount > 0 && (
+                          <span className="text-[10px] font-bold text-white bg-rose-500 px-1.5 py-0.2 rounded-full">
+                            {unreadMessagesCount}
+                          </span>
+                        )}
+                      </button>
+
                       <button
                         onClick={() => {
                           openOnboardingModal(currentUser.role === 'host' ? 'host' : 'tenant');
@@ -311,33 +353,53 @@ export const Navbar: React.FC = () => {
                         </span>
                       </button>
 
-                      <button
-                        onClick={() => {
-                          setPersona('business');
-                          setUserDropdownOpen(false);
-                        }}
-                        className="w-full text-left px-2.5 py-1.5 rounded-xl text-xs text-stone-700 hover:bg-stone-50 flex items-center justify-between"
-                      >
-                        <span className="flex items-center gap-2">
-                          <Building2 className="w-3.5 h-3.5 text-amber-hover" />
-                          Host / PG SaaS Workspace
-                        </span>
-                        <ArrowRight className="w-3 h-3 text-stone-400" />
-                      </button>
+                      {/* STRICT RBAC: Host / PG SaaS Workspace (Only visible to hosts & admins) */}
+                      {(currentUser.role === 'host' || currentUser.role === 'admin') ? (
+                        <button
+                          onClick={() => {
+                            setPersona('business');
+                            setUserDropdownOpen(false);
+                          }}
+                          className="w-full text-left px-2.5 py-1.5 rounded-xl text-xs text-stone-700 hover:bg-stone-50 flex items-center justify-between"
+                        >
+                          <span className="flex items-center gap-2">
+                            <Building2 className="w-3.5 h-3.5 text-amber-hover" />
+                            Host / PG SaaS Workspace
+                          </span>
+                          <ArrowRight className="w-3 h-3 text-stone-400" />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            openOnboardingModal('host');
+                            setUserDropdownOpen(false);
+                          }}
+                          className="w-full text-left px-2.5 py-1.5 rounded-xl text-xs text-forest hover:bg-forest-50/60 font-semibold flex items-center justify-between"
+                        >
+                          <span className="flex items-center gap-2">
+                            <Building2 className="w-3.5 h-3.5 text-forest" />
+                            Upgrade to Host / List Space
+                          </span>
+                          <ArrowRight className="w-3 h-3 text-forest" />
+                        </button>
+                      )}
 
-                      <button
-                        onClick={() => {
-                          setPersona('admin');
-                          setUserDropdownOpen(false);
-                        }}
-                        className="w-full text-left px-2.5 py-1.5 rounded-xl text-xs text-stone-700 hover:bg-stone-50 flex items-center justify-between"
-                      >
-                        <span className="flex items-center gap-2">
-                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                          Admin Verification Desk
-                        </span>
-                        <ArrowRight className="w-3 h-3 text-stone-400" />
-                      </button>
+                      {/* STRICT RBAC: Admin Verification Desk (Only visible to verified admins) */}
+                      {currentUser.role === 'admin' && (
+                        <button
+                          onClick={() => {
+                            setPersona('admin');
+                            setUserDropdownOpen(false);
+                          }}
+                          className="w-full text-left px-2.5 py-1.5 rounded-xl text-xs text-stone-700 hover:bg-stone-50 flex items-center justify-between"
+                        >
+                          <span className="flex items-center gap-2">
+                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                            Admin Verification Desk
+                          </span>
+                          <ArrowRight className="w-3 h-3 text-stone-400" />
+                        </button>
+                      )}
                     </div>
 
                     <button
@@ -503,6 +565,25 @@ export const Navbar: React.FC = () => {
           </div>
 
           <div className="pt-1 flex flex-col gap-2">
+            {/* Direct Messages & Chat */}
+            <button
+              onClick={() => {
+                openChat();
+                setMobileMenuOpen(false);
+              }}
+              className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-ivory-border text-xs font-semibold text-neutral-800"
+            >
+              <span className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-forest-emerald" />
+                Messages & Roommate Chats
+              </span>
+              {unreadMessagesCount > 0 && (
+                <span className="bg-rose-500 text-white font-bold px-2 py-0.5 rounded-full text-[10px]">
+                  {unreadMessagesCount}
+                </span>
+              )}
+            </button>
+
             <button
               onClick={() => {
                 setCurrentView('saved');
@@ -519,19 +600,36 @@ export const Navbar: React.FC = () => {
               </span>
             </button>
 
-            <button
-              onClick={() => {
-                setPersona('business');
-                setMobileMenuOpen(false);
-              }}
-              className="flex items-center justify-between p-2.5 rounded-xl bg-forest text-white text-xs font-semibold"
-            >
-              <span className="flex items-center gap-2">
-                <PlusCircle className="w-4 h-4 text-amber-light" />
-                Host / PG Workspace
-              </span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+            {/* STRICT RBAC: Host / PG Workspace */}
+            {(currentUser?.role === 'host' || currentUser?.role === 'admin') ? (
+              <button
+                onClick={() => {
+                  setPersona('business');
+                  setMobileMenuOpen(false);
+                }}
+                className="flex items-center justify-between p-2.5 rounded-xl bg-forest text-white text-xs font-semibold"
+              >
+                <span className="flex items-center gap-2">
+                  <PlusCircle className="w-4 h-4 text-amber-light" />
+                  Host / PG Workspace
+                </span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  openOnboardingModal('host');
+                  setMobileMenuOpen(false);
+                }}
+                className="flex items-center justify-between p-2.5 rounded-xl bg-forest-50 border border-forest-200 text-forest text-xs font-semibold"
+              >
+                <span className="flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-forest" />
+                  List Your Space / Host Onboarding
+                </span>
+                <ArrowRight className="w-4 h-4 text-forest" />
+              </button>
+            )}
           </div>
         </div>
       )}

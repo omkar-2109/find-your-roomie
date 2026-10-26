@@ -206,3 +206,107 @@ CREATE POLICY "Users can update and delete their own uploads"
   ON storage.objects FOR UPDATE
   TO authenticated
   USING (bucket_id = 'roomzy-media' AND (auth.uid())::text = (storage.foldername(name))[2]);
+
+-- ==============================================================================
+-- 8. CONVERSATIONS & CHAT MESSAGING (With Row-Level Security)
+-- ==============================================================================
+
+CREATE TABLE IF NOT EXISTS public.conversations (
+  id TEXT PRIMARY KEY DEFAULT ('conv-' || floor(extract(epoch from now()) * 1000)::text),
+  participant_ids UUID[] NOT NULL,
+  listing_id TEXT REFERENCES public.listings(id) ON DELETE SET NULL,
+  listing_title TEXT,
+  last_message TEXT,
+  last_message_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.messages (
+  id TEXT PRIMARY KEY DEFAULT ('msg-' || floor(extract(epoch from now()) * 1000)::text),
+  conversation_id TEXT REFERENCES public.conversations(id) ON DELETE CASCADE,
+  sender_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  sender_name TEXT NOT NULL,
+  sender_avatar TEXT,
+  text TEXT NOT NULL,
+  message_type TEXT DEFAULT 'text' CHECK (message_type IN ('text', 'teamup_proposal')),
+  metadata JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ==============================================================================
+-- 9. FLATMATE & ROOMMATE FINDING PROFILES
+-- ==============================================================================
+
+CREATE TABLE IF NOT EXISTS public.flatmate_profiles (
+  id TEXT PRIMARY KEY DEFAULT ('flt-' || floor(extract(epoch from now()) * 1000)::text),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
+  full_name TEXT NOT NULL,
+  avatar_url TEXT,
+  city TEXT NOT NULL CHECK (city IN ('Bengaluru', 'Mumbai', 'Delhi-NCR', 'Pune', 'Hyderabad')),
+  target_localities TEXT[] DEFAULT '{}',
+  budget_max INTEGER NOT NULL,
+  move_in_date TEXT,
+  looking_for_bhk TEXT DEFAULT '2 BHK',
+  gender TEXT DEFAULT 'Any',
+  occupation TEXT,
+  user_category TEXT DEFAULT 'working_professional',
+  company_or_college TEXT,
+  lifestyle JSONB DEFAULT '{}'::jsonb,
+  bio TEXT,
+  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'matched', 'inactive')),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Row-Level Security (RLS)
+ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.flatmate_profiles ENABLE ROW LEVEL SECURITY;
+
+-- Conversations: Only participants can view or create
+CREATE POLICY "Users can view their conversations"
+  ON public.conversations FOR SELECT
+  TO authenticated
+  USING (auth.uid() = ANY(participant_ids));
+
+CREATE POLICY "Users can insert conversations they belong to"
+  ON public.conversations FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = ANY(participant_ids));
+
+-- Messages: Only participants of conversation can view or send messages
+CREATE POLICY "Users can view messages in their conversations"
+  ON public.messages FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.conversations c 
+      WHERE c.id = conversation_id AND auth.uid() = ANY(c.participant_ids)
+    )
+  );
+
+CREATE POLICY "Users can send messages in their conversations"
+  ON public.messages FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    auth.uid() = sender_id AND
+    EXISTS (
+      SELECT 1 FROM public.conversations c 
+      WHERE c.id = conversation_id AND auth.uid() = ANY(c.participant_ids)
+    )
+  );
+
+-- Flatmate Profiles: Everyone can view active flatmate profiles; owners can update
+CREATE POLICY "Active flatmate profiles are viewable by everyone"
+  ON public.flatmate_profiles FOR SELECT
+  USING (status = 'active');
+
+CREATE POLICY "Users can insert their flatmate profile"
+  ON public.flatmate_profiles FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own flatmate profile"
+  ON public.flatmate_profiles FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = user_id);

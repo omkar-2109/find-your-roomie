@@ -10,7 +10,8 @@ import {
   CalendarCheck, 
   PlusCircle,
   HelpCircle,
-  Shield
+  Shield,
+  MessageSquare
 } from 'lucide-react';
 import { CategoryType } from '../../types';
 
@@ -22,7 +23,11 @@ export const LeftRail: React.FC = () => {
     updateFilter, 
     favorites, 
     scheduledVisits,
-    setPersona
+    setPersona,
+    currentUser,
+    openChat,
+    unreadMessagesCount,
+    openOnboardingModal
   } = useApp();
 
   const handleNav = (cat: CategoryType | 'all') => {
@@ -110,6 +115,21 @@ export const LeftRail: React.FC = () => {
 
         <div className="w-8 h-px bg-ivory-border my-1"></div>
 
+        {/* Chats / Messages */}
+        <button
+          onClick={() => openChat()}
+          className="group flex flex-col items-center gap-1 w-full p-2.5 rounded-2xl transition-all relative text-neutral-500 hover:text-forest hover:bg-forest-50/60"
+          title="Roommate Chats & Messages"
+        >
+          <MessageSquare className="w-5 h-5 transition-transform group-hover:scale-110" />
+          <span className="text-[10px] font-semibold tracking-tight">Chats</span>
+          {unreadMessagesCount > 0 && (
+            <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-emerald-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center animate-pulse">
+              {unreadMessagesCount}
+            </span>
+          )}
+        </button>
+
         {/* Saved Favorites */}
         <button
           onClick={() => setCurrentView('saved')}
@@ -132,14 +152,25 @@ export const LeftRail: React.FC = () => {
 
       {/* Bottom Nav Group */}
       <div className="flex flex-col items-center gap-4 w-full px-2">
-        <button
-          onClick={() => setPersona('business')}
-          className="group flex flex-col items-center gap-1 w-full p-2 rounded-xl text-neutral-500 hover:text-forest hover:bg-ivory-dark transition-all"
-          title="Host & PG Dashboard"
-        >
-          <PlusCircle className="w-5 h-5 text-forest" />
-          <span className="text-[9px] font-semibold">Host Hub</span>
-        </button>
+        {currentUser?.role === 'host' || currentUser?.role === 'admin' ? (
+          <button
+            onClick={() => setPersona('business')}
+            className="group flex flex-col items-center gap-1 w-full p-2 rounded-xl text-neutral-500 hover:text-forest hover:bg-ivory-dark transition-all"
+            title="Host & PG Dashboard"
+          >
+            <PlusCircle className="w-5 h-5 text-forest" />
+            <span className="text-[9px] font-semibold">Host Hub</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => openOnboardingModal('host')}
+            className="group flex flex-col items-center gap-1 w-full p-2 rounded-xl text-neutral-500 hover:text-forest hover:bg-forest-50/60 transition-all"
+            title="List Your Space (Become a Host)"
+          >
+            <PlusCircle className="w-5 h-5 text-forest" />
+            <span className="text-[9px] font-semibold">List Space</span>
+          </button>
+        )}
 
         <div className="w-8 h-8 rounded-full bg-forest-50 border border-forest-100 flex items-center justify-center text-forest" title="Zero Brokerage Verified">
           <Shield className="w-4 h-4 text-forest-emerald" />

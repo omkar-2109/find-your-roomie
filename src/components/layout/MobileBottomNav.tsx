@@ -6,7 +6,8 @@ import {
   Heart, 
   Sparkles, 
   User,
-  LogIn
+  LogIn,
+  MessageSquare
 } from 'lucide-react';
 
 export const MobileBottomNav: React.FC = () => {
@@ -17,7 +18,9 @@ export const MobileBottomNav: React.FC = () => {
     updateFilter,
     setIsFilterDrawerOpen,
     currentUser,
-    openAuthModal
+    openAuthModal,
+    openChat,
+    unreadMessagesCount
   } = useApp();
 
   return (
@@ -40,16 +43,21 @@ export const MobileBottomNav: React.FC = () => {
           <span className="text-[10px]">Explore</span>
         </button>
 
-        {/* Filters / Search */}
+        {/* Chats & Messages */}
         <button
-          onClick={() => {
-            setCurrentView('marketplace');
-            setIsFilterDrawerOpen(true);
-          }}
-          className="flex flex-col items-center justify-center h-full w-full gap-1 text-neutral-500 hover:text-neutral-900 transition-colors"
+          onClick={() => openChat()}
+          className="flex flex-col items-center justify-center h-full w-full gap-1 relative text-neutral-500 hover:text-forest transition-colors"
+          title="Roommate Chats & Messages"
         >
-          <Search className="w-5 h-5 text-forest" />
-          <span className="text-[10px]">Filters</span>
+          <div className="relative">
+            <MessageSquare className="w-5 h-5 text-forest" />
+            {unreadMessagesCount > 0 && (
+              <span className="absolute -top-1.5 -right-2 bg-emerald-500 text-white font-bold text-[9px] w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
+                {unreadMessagesCount}
+              </span>
+            )}
+          </div>
+          <span className="text-[10px]">Chats</span>
         </button>
 
         {/* Find Together */}

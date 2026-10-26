@@ -138,3 +138,57 @@ export interface PendingAction {
   payload?: any;
 }
 
+export interface FlatmateProfile {
+  id: string;
+  userId: string;
+  name: string;
+  avatar: string;
+  city: MetroCity;
+  targetLocalities: string[];
+  budgetMax: number;
+  moveInDate: string;
+  lookingForBHK: '1 Room in Shared Flat' | '2 BHK' | '3 BHK' | 'Any';
+  gender: 'Male' | 'Female' | 'Non-Binary' | 'Any';
+  occupation: string;
+  userCategory: UserCategory;
+  companyOrCollege: string;
+  isAadhaarVerified: boolean;
+  lifestyle: LifestylePreferences;
+  bio: string;
+  compatibilityScore?: number;
+  lookingForFlatmateGender?: 'Male' | 'Female' | 'Any';
+}
+
+export interface ChatMessage {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  senderName: string;
+  senderAvatar: string;
+  text: string;
+  createdAt: string;
+  type?: 'text' | 'teamup_proposal';
+  metadata?: {
+    listingId?: string;
+    listingTitle?: string;
+    rentPerPerson?: number;
+    locality?: string;
+    bhk?: string;
+    photo?: string;
+    accepted?: boolean;
+  };
+}
+
+export interface Conversation {
+  id: string;
+  participantIds: string[];
+  participantNames: Record<string, string>;
+  participantAvatars: Record<string, string>;
+  participantRoles: Record<string, string>;
+  lastMessage: string;
+  lastMessageAt: string;
+  unreadCount: number;
+  listingId?: string;
+  listingTitle?: string;
+}
+

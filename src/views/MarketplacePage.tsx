@@ -3,6 +3,8 @@ import { useApp } from '../context/AppContext';
 import { ListingCard } from '../components/marketplace/ListingCard';
 import { FilterSidebar } from '../components/marketplace/FilterSidebar';
 import { LocalityMap } from '../components/marketplace/LocalityMap';
+import { FlatmateCard } from '../components/flatmates/FlatmateCard';
+import { FlatmateProfileModal } from '../components/flatmates/FlatmateProfileModal';
 import { CategoryType } from '../types';
 import { 
   Search, 
@@ -15,12 +17,14 @@ import {
   X,
   ArrowUpDown,
   Building2,
-  PlusCircle
+  PlusCircle,
+  Users
 } from 'lucide-react';
 
 export const MarketplacePage: React.FC = () => {
   const { 
     listings, 
+    flatmateProfiles,
     filters, 
     updateFilter, 
     resetFilters,
@@ -30,10 +34,12 @@ export const MarketplacePage: React.FC = () => {
     setIsFilterDrawerOpen,
     seedDemoListings,
     openOnboardingModal,
-    setPersona
+    setPersona,
+    currentUser
   } = useApp();
 
   const [mobileMapOpen, setMobileMapOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   // Filter listings
   const filteredListings = listings.filter(item => {
@@ -96,6 +102,36 @@ export const MarketplacePage: React.FC = () => {
     if (filters.sortBy === 'price-desc') return b.costs.rent - a.costs.rent;
     if (filters.sortBy === 'newest') return b.id.localeCompare(a.id);
     return (b.compatibilityScore || 90) - (a.compatibilityScore || 90);
+  });
+
+  const isFlatmateMode = filters.category === 'flatmates' || filters.category === 'groups';
+
+  // Filter flatmate profiles
+  const filteredFlatmates = flatmateProfiles.filter(profile => {
+    // City match (fallback to match or if empty)
+    if (profile.city !== filters.city) return false;
+
+    // Gender match
+    if (filters.gender !== 'Any' && profile.gender !== filters.gender) {
+      return false;
+    }
+
+    // Dietary match
+    if (filters.dietary !== 'All' && filters.dietary === 'Pure Veg' && profile.dietary !== 'Pure Veg') {
+      return false;
+    }
+
+    // Search query
+    if (filters.searchQuery.trim()) {
+      const q = filters.searchQuery.toLowerCase();
+      const matchName = profile.fullName.toLowerCase().includes(q);
+      const matchOcc = profile.occupation.toLowerCase().includes(q);
+      const matchLocs = profile.preferredLocalities.some(l => l.toLowerCase().includes(q));
+      const matchBio = profile.bio.toLowerCase().includes(q);
+      if (!matchName && !matchOcc && !matchLocs && !matchBio) return false;
+    }
+
+    return true;
   });
 
   const categories: { id: CategoryType | 'all'; label: string; count?: number }[] = [
@@ -252,18 +288,84 @@ export const MarketplacePage: React.FC = () => {
           <FilterSidebar />
         </aside>
 
-        {/* Listings Grid Area */}
+        {/* Listings / Flatmates Grid Area */}
         <div className={`flex-grow transition-all duration-300 ${isMapSplitOpen ? 'lg:w-[calc(100%-18rem-32rem)]' : 'w-full'}`}>
           
+          {/* Flatmate Mode Discovery Banner */}
+          {isFlatmateMode && (
+            <div className="bg-gradient-to-r from-forest-dark via-forest to-forest-emerald text-white rounded-3xl p-6 sm:p-7 shadow-xl mb-6 relative overflow-hidden border border-emerald-900/30">
+              <div className="relative z-10 max-w-2xl">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-amber-light text-xs font-bold mb-3 border border-white/20">
+                  <Sparkles className="w-3.5 h-3.5 text-amber" />
+                  <span>Verified Roommate & Flatmate Matching</span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-display font-extrabold tracking-tight">
+                  Find Compatible Flatmates in {filters.city}
+                </h2>
+                <p className="text-xs sm:text-sm text-forest-50/90 mt-1.5 leading-relaxed">
+                  Connect with verified tenants and professionals looking to team up on 2BHK/3BHK flats to cut rent by 50%+. Chat directly, check lifestyle match %, and move in zero-brokerage.
+                </p>
+                <div className="flex flex-wrap items-center gap-3 mt-4">
+                  <button
+                    onClick={() => setIsProfileModalOpen(true)}
+                    className="px-4 py-2 rounded-xl bg-amber hover:bg-amber-light text-stone-950 font-bold text-xs shadow-md transition-all flex items-center gap-1.5"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    <span>Post Roommate Profile</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Results Counter */}
           <div className="flex items-center justify-between mb-4 text-xs text-neutral-500">
             <span>
-              Showing <strong className="text-neutral-900">{sortedListings.length}</strong> available listings in <strong className="text-forest">{filters.city}</strong>
+              {isFlatmateMode ? (
+                <>Showing <strong className="text-neutral-900">{filteredFlatmates.length}</strong> verified flatmate seekers in <strong className="text-forest">{filters.city}</strong></>
+              ) : (
+                <>Showing <strong className="text-neutral-900">{sortedListings.length}</strong> available listings in <strong className="text-forest">{filters.city}</strong></>
+              )}
             </span>
           </div>
 
           {/* Grid or Empty State */}
-          {sortedListings.length > 0 ? (
+          {isFlatmateMode ? (
+            filteredFlatmates.length > 0 ? (
+              <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+                {filteredFlatmates.map(profile => (
+                  <FlatmateCard key={profile.id} flatmate={profile} />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-3xl p-10 text-center border border-ivory-border shadow-soft max-w-lg mx-auto my-8">
+                <div className="w-14 h-14 bg-forest-50 text-forest rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold">
+                  <Users className="w-6 h-6" />
+                </div>
+                <h3 className="font-display font-bold text-lg text-neutral-900">
+                  No flatmates found in {filters.city}
+                </h3>
+                <p className="text-xs text-neutral-500 mt-2 max-w-sm mx-auto">
+                  Be the first to post your roommate search profile in {filters.city} so others can match and team up with you!
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-3 mt-5">
+                  <button
+                    onClick={() => setIsProfileModalOpen(true)}
+                    className="bg-forest hover:bg-forest-light text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-soft transition-all flex items-center gap-1.5"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    <span>Post My Flatmate Profile</span>
+                  </button>
+                  <button
+                    onClick={resetFilters}
+                    className="border border-stone-300 hover:bg-stone-50 text-stone-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition-all"
+                  >
+                    Reset Filters
+                  </button>
+                </div>
+              </div>
+            )
+          ) : sortedListings.length > 0 ? (
             <div className={`grid gap-5 ${
               isMapSplitOpen
                 ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3'
@@ -383,6 +485,12 @@ export const MarketplacePage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* 7. FLATMATE PROFILE CREATION MODAL */}
+      <FlatmateProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+      />
 
     </div>
   );

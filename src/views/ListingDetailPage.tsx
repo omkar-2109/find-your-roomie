@@ -34,7 +34,8 @@ export const ListingDetailPage: React.FC = () => {
     bookVisit,
     submitInquiry,
     currentUser,
-    requireAuth
+    requireAuth,
+    openChat
   } = useApp();
 
   const [activePhotoIdx, setActivePhotoIdx] = useState(0);
@@ -65,6 +66,19 @@ export const ListingDetailPage: React.FC = () => {
 
   const listing = listings.find(l => l.id === selectedListingId) || listings[0];
   const isFav = isFavorite(listing.id);
+  const splitRent = Math.round(listing.costs.rent / 2);
+
+  const handleOpenDirectChat = () => {
+    requireAuth({ type: 'inquiry', payload: { listingId: listing.id } }, () => {
+      openChat(undefined, listing.host.name, { id: listing.id, title: listing.title });
+    });
+  };
+
+  const handleOpenTeamUpChat = () => {
+    requireAuth({ type: 'inquiry', payload: { listingId: listing.id } }, () => {
+      openChat(undefined, undefined, { id: listing.id, title: `${listing.title} (Split Rent: ₹${splitRent.toLocaleString('en-IN')}/person)` });
+    });
+  };
 
   const handleOpenVisitModal = () => {
     requireAuth({ type: 'visit', payload: { listingId: listing.id } }, () => {
@@ -490,6 +504,35 @@ export const ListingDetailPage: React.FC = () => {
               </div>
             </div>
 
+            {/* Team Up / Split Rent Box for Whole Flats / Multi-BHK */}
+            <div className="bg-gradient-to-br from-amber-soft/90 via-amber-light/30 to-white p-4 rounded-2xl border border-amber/40 shadow-xs space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-hover uppercase tracking-wider">
+                  <Sparkles className="w-3.5 h-3.5 text-amber" />
+                  Team Up & Split Rent
+                </span>
+                <span className="text-[10px] font-semibold bg-white/90 px-2 py-0.5 rounded-full border border-amber/30 text-stone-800">
+                  Save 50%
+                </span>
+              </div>
+              <p className="text-xs text-stone-700 leading-snug">
+                Need a verified roommate to split this apartment with? Propose a shared move-in and split the rent 50/50.
+              </p>
+              <div className="flex items-baseline justify-between py-1 bg-white/80 px-3 rounded-xl border border-amber/20">
+                <span className="text-xs text-stone-600">Your Share:</span>
+                <span className="font-display font-extrabold text-forest text-base">
+                  ₹{splitRent.toLocaleString('en-IN')}<span className="text-[10px] text-stone-500 font-normal">/person</span>
+                </span>
+              </div>
+              <button
+                onClick={handleOpenTeamUpChat}
+                className="w-full bg-forest hover:bg-forest-light text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs transition-all"
+              >
+                <Users className="w-4 h-4 text-amber-light" />
+                <span>Find Roommate to Split this Flat</span>
+              </button>
+            </div>
+
             {/* Action Buttons */}
             <div className="space-y-2 pt-2">
               <button
@@ -501,11 +544,11 @@ export const ListingDetailPage: React.FC = () => {
               </button>
 
               <button
-                onClick={handleOpenInquiryModal}
+                onClick={handleOpenDirectChat}
                 className="w-full bg-ivory hover:bg-ivory-dark text-neutral-900 font-semibold py-3 rounded-xl text-xs flex items-center justify-center gap-2 border border-ivory-border transition-all"
               >
                 <MessageSquare className="w-4 h-4 text-forest" />
-                <span>Send Direct Inquiry</span>
+                <span>Live Chat with Host</span>
               </button>
             </div>
 
@@ -540,8 +583,8 @@ export const ListingDetailPage: React.FC = () => {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={handleOpenInquiryModal}
-            className="p-2.5 rounded-xl border border-ivory-border bg-ivory text-neutral-700"
+            onClick={handleOpenDirectChat}
+            className="p-2.5 rounded-xl border border-ivory-border bg-ivory text-neutral-700 hover:text-forest"
             aria-label="Send message"
           >
             <MessageSquare className="w-4 h-4 text-forest" />
