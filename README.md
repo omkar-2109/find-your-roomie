@@ -82,6 +82,7 @@ Inspired by global design standards (Airbnb Luxe, Linear, Stripe Press, and mode
 
 ## 🛠️ Technology Stack
 
+- **Backend & Database**: Supabase (PostgreSQL with Row Level Security, Storage Buckets, GoTrue Auth)
 - **Frontend Core**: React 18.3, TypeScript 5.5
 - **Build System**: Vite 6.4 (ESM native, sub-second HMR)
 - **Styling Architecture**:
@@ -103,19 +104,26 @@ roomzy/
 ├── vite.config.js               # Vite bundler configuration
 ├── .gitignore                   # Enterprise git ignore specifications
 ├── README.md                    # Platform documentation
+├── supabase/
+│   └── schema.sql               # PostgreSQL tables, RLS policies, storage bucket
 └── src/
     ├── main.tsx                 # React DOM root entry
     ├── App.tsx                  # Main router & layout shell
     ├── index.css                # Glassmorphism tokens & atmospheric styles
     ├── types/
     │   └── index.ts             # TypeScript domain models (Listing, User, Filter)
+    ├── lib/
+    │   └── supabase.ts          # Supabase client singleton
+    ├── services/
+    │   ├── storageService.ts    # Supabase Storage uploads (roomzy-media bucket)
+    │   └── listingService.ts    # Live PostgreSQL queries & mutations
     ├── context/
-    │   └── AppContext.tsx       # State management (filters, auth, visits, saves)
+    │   └── AppContext.tsx       # State management (Supabase Auth & live listings)
     ├── data/
-    │   └── mockListings.ts      # Metro listings, verified flatmates, and pricing
+    │   └── mockListings.ts      # Metro localities configuration
     ├── components/
     │   ├── auth/
-    │   │   └── AuthModal.tsx    # Mobile OTP & Google Workspace auth gateway
+    │   │   └── AuthModal.tsx    # Supabase Auth gateway (Email, Magic Link, Phone, Google)
     │   ├── layout/
     │   │   ├── Navbar.tsx       # Translucent desktop navigation with search
     │   │   ├── PersonaHeader.tsx# Live announcement bar & metro selector
@@ -131,8 +139,30 @@ roomzy/
         ├── MarketplacePage.tsx  # Search results grid with split-screen radar
         ├── ListingDetailPage.tsx# Photo mosaic, breakdown & visit scheduler
         ├── SavedPage.tsx        # Saved favorites & booked visit itineraries
-        ├── BusinessPortal.tsx   # Host & PG operator SaaS inventory workspace
-        └── AdminPortal.tsx      # Admin KYC review & trust verification desk
+        ├── BusinessPortal.tsx   # Host SaaS portal with Supabase multi-image upload
+        ├── AdminPortal.tsx      # Admin KYC review & trust verification desk
+        └── OAuthConsentPage.tsx # Supabase OAuth Server authorization consent screen
+```
+
+---
+
+## ⚡ Supabase Backend Setup
+
+### 1. Database Schema & Storage Bucket
+1. Open your [Supabase Project Dashboard](https://supabase.com/dashboard).
+2. Navigate to the **SQL Editor** tab on the left sidebar.
+3. Open [`supabase/schema.sql`](supabase/schema.sql) from this repository, copy its contents, paste into the SQL Editor, and click **Run**.
+4. This initializes:
+   - Tables: `profiles`, `listings`, `scheduled_visits`, `inquiries`
+   - Storage Bucket: `roomzy-media` (public) with folder isolation (`properties/`, `avatars/`)
+   - Complete Row Level Security (RLS) policies allowing public read and authenticated mutations
+   - PostgreSQL trigger to automatically create a user profile on `auth.users` creation.
+
+### 2. Environment Configuration
+Create a `.env.local` file in the root directory:
+```env
+VITE_SUPABASE_URL=https://knpcnaanzirifithdgbj.supabase.co
+VITE_SUPABASE_ANON_KEY=sb_publishable__CUZ4G-cRJkBGKqaC3tuLA_PCqDKb9A
 ```
 
 ---

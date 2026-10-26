@@ -41,7 +41,7 @@ interface AuthDetailsState {
 }
 
 export const OAuthConsentPage: React.FC = () => {
-  const { currentUser, loginWithGoogle, loginAsDemo, setCurrentView } = useApp();
+  const { currentUser, loginWithGoogle, openAuthModal, signOut, setCurrentView } = useApp();
   
   const [authorizationId, setAuthorizationId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -369,13 +369,13 @@ export const OAuthConsentPage: React.FC = () => {
                         onClick={loginWithGoogle}
                         className="px-3 py-1.5 text-xs font-semibold bg-white border border-stone-300 rounded-lg hover:bg-stone-50 shadow-xs"
                       >
-                        Sign in
+                        Google
                       </button>
                       <button
-                        onClick={() => loginAsDemo('tenant')}
+                        onClick={() => openAuthModal()}
                         className="px-3 py-1.5 text-xs font-semibold bg-forest-800 text-white rounded-lg hover:bg-forest-900 shadow-xs"
                       >
-                        Use Demo Profile
+                        Sign in / Sign up
                       </button>
                     </div>
                   </div>
@@ -383,10 +383,10 @@ export const OAuthConsentPage: React.FC = () => {
 
                 {currentUser && (
                   <button 
-                    onClick={() => loginAsDemo('host')} 
-                    className="text-[11px] font-semibold text-forest-700 hover:text-forest-900 hover:underline shrink-0 ml-2"
+                    onClick={signOut} 
+                    className="text-[11px] font-semibold text-rose-600 hover:text-rose-800 hover:underline shrink-0 ml-2"
                   >
-                    Switch
+                    Sign out
                   </button>
                 )}
               </div>

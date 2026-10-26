@@ -32,8 +32,7 @@ export const Navbar: React.FC = () => {
     setPersona,
     currentUser,
     openAuthModal,
-    logout,
-    loginAsDemo
+    logout
   } = useApp();
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -287,30 +286,11 @@ export const Navbar: React.FC = () => {
                       </button>
                     </div>
 
-                    <div className="pt-2 border-t border-ivory-border/80 flex items-center justify-between">
-                      <span className="text-[10px] text-neutral-400">Switch profile:</span>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => loginAsDemo('tenant')}
-                          className="text-[10px] font-bold text-forest hover:underline"
-                        >
-                          Tenant
-                        </button>
-                        <span className="text-neutral-300">•</span>
-                        <button
-                          onClick={() => loginAsDemo('host')}
-                          className="text-[10px] font-bold text-amber-hover hover:underline"
-                        >
-                          Host
-                        </button>
-                        <span className="text-neutral-300">•</span>
-                        <button
-                          onClick={() => loginAsDemo('admin')}
-                          className="text-[10px] font-bold text-emerald-700 hover:underline"
-                        >
-                          Admin
-                        </button>
-                      </div>
+                    <div className="pt-2 border-t border-ivory-border/80 flex items-center justify-between text-[11px]">
+                      <span className="text-neutral-400">Account Role:</span>
+                      <span className="font-bold text-forest capitalize px-2 py-0.5 rounded-md bg-forest-50 border border-forest-100">
+                        {currentUser?.role || 'tenant'}
+                      </span>
                     </div>
 
                     <button

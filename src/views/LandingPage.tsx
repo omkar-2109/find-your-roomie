@@ -36,7 +36,8 @@ import {
   Globe2,
   Video,
   CheckCheck,
-  BadgePercent
+  BadgePercent,
+  PlusCircle
 } from 'lucide-react';
 import { CategoryType, MetroCity } from '../types';
 import { INDIAN_METROS } from '../data/mockListings';
@@ -1103,12 +1104,41 @@ export const LandingPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Listings Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredListings.map(listing => (
-            <ListingCard key={listing.id} listing={listing} />
-          ))}
-        </div>
+        {/* Listings Grid or Empty State */}
+        {featuredListings.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featuredListings.map(listing => (
+              <ListingCard key={listing.id} listing={listing} />
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white/70 backdrop-blur-md rounded-3xl p-8 sm:p-12 text-center border border-ivory-border shadow-soft max-w-xl mx-auto">
+            <div className="w-14 h-14 bg-forest/10 text-forest rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold">
+              <Building2 className="w-7 h-7 text-forest" />
+            </div>
+            <h3 className="font-display font-bold text-xl text-neutral-900">
+              Live Verified Database Connected
+            </h3>
+            <p className="text-xs text-neutral-600 mt-2 max-w-md mx-auto leading-relaxed">
+              All demo accounts and mock posts have been removed. Listings are loaded directly from your Supabase backend.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
+              <button
+                onClick={() => setPersona('business')}
+                className="bg-forest hover:bg-forest-light text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-soft transition-all flex items-center gap-2"
+              >
+                <PlusCircle className="w-4 h-4" />
+                <span>List Your Property as Host</span>
+              </button>
+              <button
+                onClick={() => setCurrentView('marketplace')}
+                className="border border-stone-300 hover:bg-stone-50 text-stone-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition-all"
+              >
+                Go to Marketplace
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* View All Action */}
         <div className="mt-10 text-center">
@@ -1211,76 +1241,86 @@ export const LandingPage: React.FC = () => {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {roommateListings.map(listing => (
-              <div 
-                key={listing.id}
-                onClick={() => navigateToListing(listing.id)}
-                className="bg-white/85 hover:bg-white p-5 rounded-2xl border border-ivory-border shadow-soft hover:shadow-card hover:-translate-y-0.5 transition-all cursor-pointer flex flex-col justify-between"
-              >
-                <div>
-                  {/* Host Profile Header */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <img 
-                      src={listing.host.avatar} 
-                      alt={listing.host.name}
-                      className="w-12 h-12 rounded-full object-cover ring-2 ring-forest/20" 
-                    />
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <h3 className="font-bold text-sm text-neutral-900">{listing.host.name}</h3>
-                        <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded">
-                          {listing.compatibilityScore || 94}% Match
+          {roommateListings.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {roommateListings.map(listing => (
+                <div 
+                  key={listing.id}
+                  onClick={() => navigateToListing(listing.id)}
+                  className="bg-white/85 hover:bg-white p-5 rounded-2xl border border-ivory-border shadow-soft hover:shadow-card hover:-translate-y-0.5 transition-all cursor-pointer flex flex-col justify-between"
+                >
+                  <div>
+                    {/* Host Profile Header */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <img 
+                        src={listing.host.avatar} 
+                        alt={listing.host.name}
+                        className="w-12 h-12 rounded-full object-cover ring-2 ring-forest/20" 
+                      />
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <h3 className="font-bold text-sm text-neutral-900">{listing.host.name}</h3>
+                          <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded">
+                            {listing.compatibilityScore || 94}% Match
+                          </span>
+                        </div>
+                        <p className="text-xs text-neutral-500">{listing.host.occupation} @ {listing.host.company || 'Tech'}</p>
+                        <span className="inline-flex items-center gap-1 text-[10px] text-forest-emerald font-semibold mt-0.5">
+                          <ShieldCheck className="w-3 h-3" /> Aadhaar Verified
                         </span>
                       </div>
-                      <p className="text-xs text-neutral-500">{listing.host.occupation} @ {listing.host.company || 'Tech'}</p>
-                      <span className="inline-flex items-center gap-1 text-[10px] text-forest-emerald font-semibold mt-0.5">
-                        <ShieldCheck className="w-3 h-3" /> Aadhaar Verified
+                    </div>
+
+                    {/* Lifestyle Compatibility Matrix */}
+                    <div className="bg-ivory-dark/60 p-3 rounded-xl text-xs space-y-1.5 mb-4">
+                      <div className="flex justify-between">
+                        <span className="text-neutral-500">Dietary:</span>
+                        <span className="font-semibold text-neutral-800">{listing.preferences.dietary}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-neutral-500">Smoking:</span>
+                        <span className="font-semibold text-neutral-800">{listing.preferences.smoking}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-neutral-500">WFH Friendly:</span>
+                        <span className="font-semibold text-emerald-700">Yes (300 Mbps Fiber)</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-neutral-500">Target Locality:</span>
+                        <span className="font-semibold text-neutral-800">{listing.locality}</span>
+                      </div>
+                    </div>
+
+                    {/* Lister Tagline */}
+                    <p className="text-xs text-neutral-600 italic line-clamp-2">
+                      "{listing.tagline}"
+                    </p>
+                  </div>
+
+                  {/* Footer Pricing & CTA */}
+                  <div className="pt-4 border-t border-ivory-border flex items-center justify-between mt-4">
+                    <div>
+                      <span className="text-[10px] text-neutral-500 block">Target Budget</span>
+                      <span className="text-xs font-bold text-forest">
+                        ₹{listing.costs.rent.toLocaleString('en-IN')}/mo
                       </span>
                     </div>
-                  </div>
-
-                  {/* Lifestyle Compatibility Matrix */}
-                  <div className="bg-ivory-dark/60 p-3 rounded-xl text-xs space-y-1.5 mb-4">
-                    <div className="flex justify-between">
-                      <span className="text-neutral-500">Dietary:</span>
-                      <span className="font-semibold text-neutral-800">{listing.preferences.dietary}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-neutral-500">Smoking:</span>
-                      <span className="font-semibold text-neutral-800">{listing.preferences.smoking}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-neutral-500">WFH Friendly:</span>
-                      <span className="font-semibold text-emerald-700">Yes (300 Mbps Fiber)</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-neutral-500">Target Locality:</span>
-                      <span className="font-semibold text-neutral-800">{listing.locality}</span>
-                    </div>
-                  </div>
-
-                  {/* Lister Tagline */}
-                  <p className="text-xs text-neutral-600 italic line-clamp-2">
-                    "{listing.tagline}"
-                  </p>
-                </div>
-
-                {/* Footer Pricing & CTA */}
-                <div className="pt-4 border-t border-ivory-border flex items-center justify-between mt-4">
-                  <div>
-                    <span className="text-[10px] text-neutral-500 block">Target Budget</span>
-                    <span className="text-xs font-bold text-forest">
-                      ₹{listing.costs.rent.toLocaleString('en-IN')}/mo
+                    <span className="text-xs font-bold text-forest-emerald hover:underline flex items-center gap-1">
+                      Connect Profile <ArrowRight className="w-3 h-3" />
                     </span>
                   </div>
-                  <span className="text-xs font-bold text-forest-emerald hover:underline flex items-center gap-1">
-                    Connect Profile <ArrowRight className="w-3 h-3" />
-                  </span>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white/80 backdrop-blur-md rounded-2xl p-8 text-center border border-ivory-border shadow-xs max-w-md mx-auto">
+              <Users className="w-8 h-8 text-forest mx-auto mb-2 opacity-80" />
+              <p className="text-xs font-bold text-neutral-800">Verified Roommate Matching System</p>
+              <p className="text-[11px] text-neutral-500 mt-1 max-w-xs mx-auto">
+                Sign in with your tenant profile to publish your roommate search or match with verified flatmates in {filters.city}.
+              </p>
+            </div>
+          )}
 
         </div>
       </section>

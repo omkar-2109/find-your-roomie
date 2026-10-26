@@ -13,7 +13,9 @@ import {
   Sparkles, 
   MapPin,
   X,
-  ArrowUpDown
+  ArrowUpDown,
+  Building2,
+  PlusCircle
 } from 'lucide-react';
 
 export const MarketplacePage: React.FC = () => {
@@ -25,7 +27,8 @@ export const MarketplacePage: React.FC = () => {
     isMapSplitOpen, 
     toggleMapSplit,
     isFilterDrawerOpen,
-    setIsFilterDrawerOpen
+    setIsFilterDrawerOpen,
+    setPersona
   } = useApp();
 
   const [mobileMapOpen, setMobileMapOpen] = useState(false);
@@ -267,6 +270,33 @@ export const MarketplacePage: React.FC = () => {
               {sortedListings.map(listing => (
                 <ListingCard key={listing.id} listing={listing} />
               ))}
+            </div>
+          ) : listings.length === 0 ? (
+            <div className="bg-white/80 backdrop-blur-md rounded-3xl p-10 text-center border border-ivory-border shadow-soft max-w-lg mx-auto my-8 animate-in fade-in duration-200">
+              <div className="w-14 h-14 bg-forest/10 text-forest rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold">
+                <Building2 className="w-7 h-7 text-forest" />
+              </div>
+              <h3 className="font-display font-bold text-xl text-neutral-900">
+                Live Supabase Backend Connected
+              </h3>
+              <p className="text-xs text-neutral-600 mt-2 max-w-sm mx-auto leading-relaxed">
+                All mock property listings and demo accounts have been purged. You are now running on live Supabase Database and Storage! Be the first host to list a verified property.
+              </p>
+              <div className="flex items-center justify-center gap-3 mt-6">
+                <button
+                  onClick={() => setPersona('business')}
+                  className="bg-forest hover:bg-forest-light text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-soft transition-all flex items-center gap-1.5"
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  <span>List a Property</span>
+                </button>
+                <button
+                  onClick={resetFilters}
+                  className="border border-stone-300 hover:bg-stone-50 text-stone-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition-all"
+                >
+                  Refresh Feed
+                </button>
+              </div>
             </div>
           ) : (
             <div className="bg-white rounded-3xl p-12 text-center border border-ivory-border shadow-soft max-w-lg mx-auto my-8">

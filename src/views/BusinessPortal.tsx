@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { Listing, InquiryMessage } from '../types';
+import { uploadPropertyImages } from '../services/storageService';
 import { 
   Building2, 
   PlusCircle, 
@@ -19,7 +20,11 @@ import {
   IndianRupee,
   Settings,
   BarChart3,
-  X
+  X,
+  Upload,
+  Image as ImageIcon,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 
 export const BusinessPortal: React.FC = () => {
@@ -30,7 +35,9 @@ export const BusinessPortal: React.FC = () => {
     addNewListing, 
     updateInquiryStatus,
     navigateToListing,
-    setPersona
+    setPersona,
+    currentUser,
+    openAuthModal
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<'inventory' | 'leads' | 'calendar' | 'plans' | 'settings'>('inventory');
@@ -46,70 +53,122 @@ export const BusinessPortal: React.FC = () => {
   const [newBhk, setNewBhk] = useState<'1 BHK' | '2 BHK' | '3 BHK' | 'PG Room'>('3 BHK');
   const [newFurnishing, setNewFurnishing] = useState<'Fully Furnished' | 'Semi Furnished'>('Fully Furnished');
   const [newDietary, setNewDietary] = useState<'Veg / Non-Veg Friendly' | 'Pure Veg'>('Veg / Non-Veg Friendly');
-  const [newPhoto, setNewPhoto] = useState('https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=1000&q=80');
+  
+  // Storage & Photos State
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleCreateListing = (e: React.FormEvent) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const filesArray = Array.from(e.target.files);
+      setSelectedFiles((prev) => [...prev, ...filesArray]);
+      const newPreviews = filesArray.map((file) => URL.createObjectURL(file));
+      setPreviewUrls((prev) => [...prev, ...newPreviews]);
+      setUploadError(null);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+    setPreviewUrls((prev) => {
+      // revoke URL to avoid memory leak
+      URL.revokeObjectURL(prev[index]);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  const handleCreateListing = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
 
-    addNewListing({
-      title: newTitle,
-      tagline: 'Freshly listed verified space on Roomzy',
-      category: newCategory,
-      city: newCity,
-      locality: newLocality,
-      landmark: 'Near Main Commercial Hub',
-      coordinates: { x: 50, y: 50 },
-      photos: [
-        newPhoto,
-        'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=1000&q=80'
-      ],
-      costs: {
-        rent: Number(newRent),
-        deposit: Number(newDeposit),
-        maintenance: 2000,
-        utilitiesEstimate: 1200,
-        brokerage: 0
-      },
-      availableFrom: 'Immediately',
-      furnishing: newFurnishing,
-      bhk: newBhk,
-      amenities: ['High-Speed WiFi', 'Attached Washroom', 'Power Backup', 'AC in Room', 'Cook Available'],
-      preferences: {
-        dietary: newDietary,
-        smoking: 'Balcony Only',
-        drinking: 'Social',
-        genderPreference: 'Any',
-        wfhFriendly: true,
-        petFriendly: false,
-        lateNightsAllowed: true,
-        occupancyType: 'Private Room'
-      },
-      host: {
-        id: 'host-business-current',
-        name: 'Koramangala Living Co.',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
-        role: 'Owner',
-        verifiedGovtId: true,
-        verificationBadge: 'Verified Property Owner',
-        responseRate: 'Responds within 15 mins',
-        joinedYear: '2024'
-      },
-      compatibilityScore: 92,
-      description: 'Well-maintained, spacious shared flat with premium amenities, zero broker involvement, and digital rental agreement.',
-      houseRules: [
-        'Strictly non-smoking inside bedroom',
-        'Respectful of society quiet hours after 11 PM'
-      ],
-      nearbyHubs: [
-        { name: 'Nearest Metro Station', distance: '800m', travelTime: '8 mins walk' }
-      ],
-      isVerified: true
-    });
+    if (!currentUser) {
+      alert('Please sign in or create an account to publish your property on Supabase.');
+      openAuthModal({ type: 'host' });
+      return;
+    }
 
-    setAddModalOpen(false);
-    setNewTitle('');
-    alert('Listing created successfully and published to Roomzy Marketplace!');
+    try {
+      setIsSubmitting(true);
+      setUploadError(null);
+
+      let finalPhotos: string[] = [];
+
+      if (selectedFiles.length > 0) {
+        finalPhotos = await uploadPropertyImages(selectedFiles, currentUser.id);
+      } else {
+        // Fallback interior photo if host uploaded none
+        finalPhotos = [
+          'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=1000&q=80',
+          'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=1000&q=80'
+        ];
+      }
+
+      await addNewListing({
+        title: newTitle,
+        tagline: 'Freshly listed verified space on Roomzy',
+        category: newCategory,
+        city: newCity,
+        locality: newLocality,
+        landmark: 'Near Main Commercial Hub',
+        coordinates: { x: 50, y: 50 },
+        photos: finalPhotos,
+        costs: {
+          rent: Number(newRent),
+          deposit: Number(newDeposit),
+          maintenance: 2000,
+          utilitiesEstimate: 1200,
+          brokerage: 0
+        },
+        availableFrom: 'Immediately',
+        furnishing: newFurnishing,
+        bhk: newBhk,
+        amenities: ['High-Speed WiFi', 'Attached Washroom', 'Power Backup', 'AC in Room', 'Cook Available'],
+        preferences: {
+          dietary: newDietary,
+          smoking: 'Balcony Only',
+          drinking: 'Social',
+          genderPreference: 'Any',
+          wfhFriendly: true,
+          petFriendly: false,
+          lateNightsAllowed: true,
+          occupancyType: 'Private Room'
+        },
+        host: {
+          id: currentUser.id,
+          name: currentUser.name || 'Verified Host',
+          avatar: currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+          role: 'Owner',
+          verifiedGovtId: true,
+          verificationBadge: 'Verified Property Owner',
+          responseRate: 'Responds within 15 mins',
+          joinedYear: new Date().getFullYear().toString()
+        },
+        compatibilityScore: 92,
+        description: 'Well-maintained, spacious shared flat with premium amenities, zero broker involvement, and digital rental agreement.',
+        houseRules: [
+          'Strictly non-smoking inside bedroom',
+          'Respectful of society quiet hours after 11 PM'
+        ],
+        nearbyHubs: [
+          { name: 'Nearest Metro Station', distance: '800m', travelTime: '8 mins walk' }
+        ],
+        isVerified: true
+      });
+
+      setAddModalOpen(false);
+      setNewTitle('');
+      setSelectedFiles([]);
+      setPreviewUrls([]);
+      alert('Listing created successfully and published to Roomzy Marketplace!');
+    } catch (err: any) {
+      console.error('Failed to create listing:', err);
+      setUploadError(err.message || 'Failed to upload images or publish listing to Supabase.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -576,11 +635,77 @@ export const BusinessPortal: React.FC = () => {
                 </select>
               </div>
 
+              {/* Photo Upload with Supabase Storage */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block font-bold text-neutral-700">Property Photos</label>
+                  <span className="text-[11px] text-stone-500 font-medium">Supabase Cloud Storage</span>
+                </div>
+                
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-stone-300 hover:border-forest rounded-2xl p-4 text-center cursor-pointer transition-all bg-stone-50/60 hover:bg-forest/5 group"
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  <div className="flex flex-col items-center justify-center gap-1.5">
+                    <div className="w-10 h-10 rounded-full bg-forest/10 text-forest flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Upload className="w-5 h-5" />
+                    </div>
+                    <p className="text-xs font-semibold text-stone-800">
+                      Click to upload property photos
+                    </p>
+                    <p className="text-[11px] text-stone-500">
+                      Images automatically upload to <code className="font-mono text-forest font-semibold">roomzy-media</code> bucket
+                    </p>
+                  </div>
+                </div>
+
+                {/* Previews */}
+                {selectedFiles.length > 0 && (
+                  <div className="grid grid-cols-4 gap-2 pt-1">
+                    {previewUrls.map((url, idx) => (
+                      <div key={idx} className="relative group rounded-xl overflow-hidden aspect-video border border-stone-200 shadow-xs">
+                        <img src={url} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeFile(idx)}
+                          className="absolute top-1 right-1 bg-stone-900/80 hover:bg-rose-600 text-white rounded-full p-1 opacity-90 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {uploadError && (
+                  <div className="flex items-center gap-2 p-2.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{uploadError}</span>
+                  </div>
+                )}
+              </div>
+
               <button
                 type="submit"
-                className="w-full bg-forest hover:bg-forest-light text-white font-bold py-3 rounded-xl shadow-soft transition-all"
+                disabled={isSubmitting}
+                className="w-full bg-forest hover:bg-forest-light disabled:opacity-60 text-white font-bold py-3 rounded-xl shadow-soft transition-all flex items-center justify-center gap-2"
               >
-                Publish to Roomzy Marketplace
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Uploading to Supabase Storage & Publishing...</span>
+                  </>
+                ) : (
+                  <span>Publish to Roomzy Marketplace</span>
+                )}
               </button>
             </form>
           </div>
