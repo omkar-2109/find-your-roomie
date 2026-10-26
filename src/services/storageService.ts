@@ -58,3 +58,28 @@ export async function uploadAvatar(file: File, userId: string): Promise<string> 
   const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
   return data.publicUrl;
 }
+
+/**
+ * Upload an identity verification document (Aadhaar / Passport / Utility Bill) to Supabase Storage.
+ * Saves file under: verifications/${userId}/${Date.now()}-${file.name}
+ * Returns public URL.
+ */
+export async function uploadVerificationDoc(file: File, userId: string): Promise<string> {
+  const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+  const path = `verifications/${userId || 'guest'}/${Date.now()}-${cleanName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .upload(path, file, {
+      cacheControl: '3600',
+      upsert: true,
+    });
+
+  if (uploadError) {
+    console.error('Error uploading verification doc:', uploadError);
+    throw uploadError;
+  }
+
+  const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}

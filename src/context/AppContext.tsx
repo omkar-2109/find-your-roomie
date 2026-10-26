@@ -14,7 +14,8 @@ import {
   fetchListings, 
   createListing, 
   scheduleVisit as apiScheduleVisit, 
-  submitInquiry as apiSubmitInquiry 
+  submitInquiry as apiSubmitInquiry,
+  seedStarterListings
 } from '../services/listingService';
 
 export type PersonaType = 'consumer' | 'business' | 'admin';
@@ -44,6 +45,7 @@ interface AppContextType {
   
   // Real Supabase Auth
   currentUser: User | null;
+  setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
   isAuthModalOpen: boolean;
   pendingAction: PendingAction | null;
   openAuthModal: (action?: PendingAction, callback?: () => void) => void;
@@ -58,6 +60,12 @@ interface AppContextType {
   logout: () => void;
   requireAuth: (action?: PendingAction, callback?: () => void) => boolean;
 
+  // Onboarding & KYC Wizard
+  isOnboardingModalOpen: boolean;
+  onboardingInitialRole: 'tenant' | 'host';
+  openOnboardingModal: (role?: 'tenant' | 'host') => void;
+  closeOnboardingModal: () => void;
+
   // Filters & Search
   filters: FilterState;
   updateFilter: <K extends keyof FilterState>(key: K, value: FilterState[K]) => void;
@@ -71,6 +79,7 @@ interface AppContextType {
   listings: Listing[];
   isLoadingListings: boolean;
   refetchListings: () => Promise<void>;
+  seedDemoListings: () => Promise<void>;
   favorites: string[];
   toggleFavorite: (id: string) => void;
   isFavorite: (id: string) => boolean;
@@ -181,6 +190,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [pendingCallback, setPendingCallback] = useState<(() => void) | null>(null);
 
+  // Global-Grade Onboarding & KYC Wizard State
+  const [isOnboardingModalOpen, setIsOnboardingModalOpen] = useState<boolean>(false);
+  const [onboardingInitialRole, setOnboardingInitialRole] = useState<'tenant' | 'host'>('tenant');
+
+  const openOnboardingModal = (role: 'tenant' | 'host' = 'tenant') => {
+    setOnboardingInitialRole(role);
+    setIsOnboardingModalOpen(true);
+  };
+
+  const closeOnboardingModal = () => {
+    setIsOnboardingModalOpen(false);
+  };
+
   // Supabase Auth Session Listener & Synchronization
   useEffect(() => {
     const syncUserSession = async (userRecord: any) => {
@@ -262,7 +284,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const loadListings = async () => {
     setIsLoadingListings(true);
     try {
-      const liveListings = await fetchListings(filters.city);
+      const liveListings = await fetchListings();
       setListings(liveListings);
     } catch (err) {
       console.warn('Unable to load listings:', err);
@@ -272,9 +294,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const seedDemoListings = async () => {
+    setIsLoadingListings(true);
+    try {
+      const seeded = await seedStarterListings();
+      setListings(seeded);
+    } catch (err) {
+      console.warn('Seed demo listings notice:', err);
+    } finally {
+      setIsLoadingListings(false);
+    }
+  };
+
   useEffect(() => {
     loadListings();
-  }, [filters.city]);
+  }, []);
 
   const openAuthModal = (action?: PendingAction, callback?: () => void) => {
     if (action) setPendingAction(action);
@@ -580,6 +614,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       
       // Real Auth
       currentUser,
+      setCurrentUser,
       isAuthModalOpen,
       pendingAction,
       openAuthModal,
@@ -594,6 +629,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       logout,
       requireAuth,
 
+      // Onboarding & KYC
+      isOnboardingModalOpen,
+      onboardingInitialRole,
+      openOnboardingModal,
+      closeOnboardingModal,
+
       filters,
       updateFilter,
       resetFilters,
@@ -604,6 +645,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       listings,
       isLoadingListings,
       refetchListings: loadListings,
+      seedDemoListings,
       favorites,
       toggleFavorite,
       isFavorite,

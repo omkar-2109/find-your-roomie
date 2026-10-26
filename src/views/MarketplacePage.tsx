@@ -28,6 +28,8 @@ export const MarketplacePage: React.FC = () => {
     toggleMapSplit,
     isFilterDrawerOpen,
     setIsFilterDrawerOpen,
+    seedDemoListings,
+    openOnboardingModal,
     setPersona
   } = useApp();
 
@@ -273,28 +275,35 @@ export const MarketplacePage: React.FC = () => {
             </div>
           ) : listings.length === 0 ? (
             <div className="bg-white/80 backdrop-blur-md rounded-3xl p-10 text-center border border-ivory-border shadow-soft max-w-lg mx-auto my-8 animate-in fade-in duration-200">
-              <div className="w-14 h-14 bg-forest/10 text-forest rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold">
-                <Building2 className="w-7 h-7 text-forest" />
+              <div className="w-14 h-14 bg-emerald-50 text-forest-emerald rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold border border-emerald-100">
+                <Sparkles className="w-7 h-7 text-forest-emerald" />
               </div>
               <h3 className="font-display font-bold text-xl text-neutral-900">
                 Live Supabase Backend Connected
               </h3>
               <p className="text-xs text-neutral-600 mt-2 max-w-sm mx-auto leading-relaxed">
-                All mock property listings and demo accounts have been purged. You are now running on live Supabase Database and Storage! Be the first host to list a verified property.
+                Your live database and storage are ready. Instant-seed verified listings across Bangalore, Mumbai, Delhi-NCR, Pune & Hyderabad, or list your own verified space.
               </p>
-              <div className="flex items-center justify-center gap-3 mt-6">
+              <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
                 <button
-                  onClick={() => setPersona('business')}
-                  className="bg-forest hover:bg-forest-light text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-soft transition-all flex items-center gap-1.5"
+                  onClick={() => seedDemoListings()}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-soft transition-all flex items-center gap-1.5"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-light" />
+                  <span>Seed 15 Verified Metro Spaces</span>
+                </button>
+                <button
+                  onClick={() => openOnboardingModal('host')}
+                  className="bg-forest hover:bg-forest-light text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-soft transition-all flex items-center gap-1.5"
                 >
                   <PlusCircle className="w-4 h-4" />
-                  <span>List a Property</span>
+                  <span>Host Onboarding</span>
                 </button>
                 <button
                   onClick={resetFilters}
                   className="border border-stone-300 hover:bg-stone-50 text-stone-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition-all"
                 >
-                  Refresh Feed
+                  Reset Filters
                 </button>
               </div>
             </div>

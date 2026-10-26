@@ -13,9 +13,16 @@ import { BusinessPortal } from './views/BusinessPortal';
 import { AdminPortal } from './views/AdminPortal';
 import { OAuthConsentPage } from './views/OAuthConsentPage';
 import { AuthModal } from './components/auth/AuthModal';
+import { OnboardingModal } from './components/onboarding/OnboardingModal';
 
 const AppContent: React.FC = () => {
-  const { persona, currentView } = useApp();
+  const { 
+    persona, 
+    currentView, 
+    isOnboardingModalOpen, 
+    closeOnboardingModal, 
+    onboardingInitialRole 
+  } = useApp();
 
   // 0. Dedicated OAuth 2.1 Consent View for Third-Party Applications & MCP Clients
   if (currentView === 'oauth-consent') {
@@ -23,6 +30,11 @@ const AppContent: React.FC = () => {
       <div className="min-h-screen bg-ivory flex flex-col font-sans text-neutral-900 selection:bg-amber-soft selection:text-stone-900 overflow-x-hidden">
         <OAuthConsentPage />
         <AuthModal />
+        <OnboardingModal 
+          isOpen={isOnboardingModalOpen}
+          onClose={closeOnboardingModal}
+          initialRole={onboardingInitialRole}
+        />
       </div>
     );
   }
@@ -67,6 +79,13 @@ const AppContent: React.FC = () => {
 
       {/* 6. Apple-Glass Indian Mobile OTP & Google Auth Modal */}
       <AuthModal />
+
+      {/* 7. Global-Grade 3-Step KYC & Onboarding Wizard */}
+      <OnboardingModal 
+        isOpen={isOnboardingModalOpen}
+        onClose={closeOnboardingModal}
+        initialRole={onboardingInitialRole}
+      />
 
     </div>
   );

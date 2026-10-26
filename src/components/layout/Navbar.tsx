@@ -32,6 +32,7 @@ export const Navbar: React.FC = () => {
     setPersona,
     currentUser,
     openAuthModal,
+    openOnboardingModal,
     logout
   } = useApp();
   
@@ -227,6 +228,22 @@ export const Navbar: React.FC = () => {
                     <div className="py-2 space-y-1">
                       <button
                         onClick={() => {
+                          openOnboardingModal(currentUser.role === 'host' ? 'host' : 'tenant');
+                          setUserDropdownOpen(false);
+                        }}
+                        className="w-full text-left px-2.5 py-1.5 rounded-xl text-xs text-forest font-semibold hover:bg-forest-50/70 flex items-center justify-between border border-forest-100/60 bg-forest-50/30"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Sparkles className="w-3.5 h-3.5 text-forest-emerald" />
+                          KYC & Vibe Onboarding
+                        </span>
+                        <span className="text-[10px] text-forest-emerald font-bold bg-white px-1.5 py-0.5 rounded-full border border-forest-200">
+                          Edit
+                        </span>
+                      </button>
+
+                      <button
+                        onClick={() => {
                           setCurrentView('saved');
                           setUserDropdownOpen(false);
                         }}
@@ -338,6 +355,7 @@ export const Navbar: React.FC = () => {
           
           {/* Guest Login Banner or User Profile Header */}
           {currentUser ? (
+            <>
             <div className="p-3 bg-white rounded-2xl border border-ivory-border flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <img
@@ -360,6 +378,22 @@ export const Navbar: React.FC = () => {
                 Logout
               </button>
             </div>
+            <button
+              onClick={() => {
+                openOnboardingModal(currentUser.role === 'host' ? 'host' : 'tenant');
+                setMobileMenuOpen(false);
+              }}
+              className="w-full flex items-center justify-between p-2.5 rounded-xl bg-forest-50/80 border border-forest-200 text-xs font-semibold text-forest"
+            >
+              <span className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-forest-emerald" />
+                KYC & Lifestyle Vibe Check
+              </span>
+              <span className="text-[10px] font-bold bg-forest text-white px-2 py-0.5 rounded-full">
+                Verify
+              </span>
+            </button>
+            </>
           ) : (
             <div className="p-3 bg-forest-50 rounded-2xl border border-forest-100 flex items-center justify-between">
               <div>

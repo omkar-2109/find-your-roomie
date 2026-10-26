@@ -18,10 +18,9 @@ export const PersonaHeader: React.FC = () => {
     persona, 
     setPersona, 
     setCurrentView, 
-    filters, 
-    updateFilter,
     currentUser,
-    openAuthModal
+    openAuthModal,
+    openOnboardingModal
   } = useApp();
 
   // If in Business or Admin workspace, show dedicated workspace banner with exit button
@@ -57,7 +56,7 @@ export const PersonaHeader: React.FC = () => {
     );
   }
 
-  // Public Consumer Announcement & Utility Bar (Inspired by GetSetHome)
+  // Public Consumer Announcement & Utility Bar (Clean Luxury Header, No Clunky Dropdowns)
   return (
     <div className="bg-forest-950 text-ivory-dark border-b border-forest-900 text-xs px-3 sm:px-6 py-1.5 transition-all overflow-hidden">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-3">
@@ -73,25 +72,32 @@ export const PersonaHeader: React.FC = () => {
           </span>
         </div>
 
-        {/* Right: City Selector & Direct Utilities */}
+        {/* Right: Direct Utilities & Trust Verification (No Native Dropdowns) */}
         <div className="flex items-center gap-3 sm:gap-4 shrink-0 text-[11px]">
           
-          {/* Quick City Selector */}
-          <div className="flex items-center gap-1 bg-forest-900/90 hover:bg-forest-800 px-2 py-0.5 rounded-lg border border-forest-800 transition-colors">
-            <MapPin className="w-3 h-3 text-amber-light" />
-            <select
-              value={filters.city}
-              onChange={(e) => updateFilter('city', e.target.value as MetroCity)}
-              className="bg-transparent text-white font-semibold focus:outline-none cursor-pointer text-[11px]"
-              aria-label="Select city"
+          {/* Identity Verification Pill / Trigger */}
+          {currentUser?.isAadhaarVerified ? (
+            <span className="inline-flex items-center gap-1 bg-emerald-950/80 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-semibold text-[10px]">
+              <ShieldCheck className="w-3 h-3 text-emerald-400" />
+              <span>Aadhaar Verified</span>
+            </span>
+          ) : currentUser ? (
+            <button
+              onClick={() => openOnboardingModal(currentUser.role === 'host' ? 'host' : 'tenant')}
+              className="inline-flex items-center gap-1 bg-amber/20 hover:bg-amber/30 text-amber-light px-2.5 py-0.5 rounded-full border border-amber/40 font-bold text-[10px] transition-colors"
             >
-              {INDIAN_METROS.map(m => (
-                <option key={m.name} value={m.name} className="bg-forest-900 text-white">
-                  {m.name}
-                </option>
-              ))}
-            </select>
-          </div>
+              <Sparkles className="w-3 h-3 text-amber" />
+              <span>Verify Profile (+Badge)</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => openOnboardingModal('tenant')}
+              className="hidden sm:inline-flex items-center gap-1 text-ivory-warm/90 hover:text-white font-semibold transition-colors"
+            >
+              <ShieldCheck className="w-3 h-3 text-emerald-400" />
+              <span>Get Verified</span>
+            </button>
+          )}
 
           {/* For Property Owners CTA */}
           <button
@@ -99,13 +105,13 @@ export const PersonaHeader: React.FC = () => {
               if (currentUser && (currentUser.role === 'host' || currentUser.role === 'admin')) {
                 setPersona('business');
               } else {
-                openAuthModal({ type: 'host' });
+                openOnboardingModal('host');
               }
             }}
-            className="hidden sm:flex items-center gap-1 text-ivory-warm hover:text-amber-light font-semibold transition-colors"
+            className="flex items-center gap-1 text-ivory-warm hover:text-amber-light font-semibold transition-colors"
           >
             <Building2 className="w-3 h-3 text-amber" />
-            <span>List Your Property</span>
+            <span>List Your Space</span>
           </button>
 
           {/* Support Helpline */}

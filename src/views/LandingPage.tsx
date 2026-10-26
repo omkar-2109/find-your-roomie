@@ -336,6 +336,8 @@ export const LandingPage: React.FC = () => {
     setPersona,
     navigateToListing,
     openAuthModal,
+    openOnboardingModal,
+    seedDemoListings,
     currentUser
   } = useApp();
 
@@ -564,7 +566,7 @@ export const LandingPage: React.FC = () => {
                       className="w-full h-full min-h-[50px] bg-gradient-to-r from-forest to-forest-light hover:from-forest-light hover:to-forest text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-soft hover:shadow-glow-emerald transition-all hover:scale-[1.02]"
                     >
                       <Search className="w-4 h-4 text-amber-light" />
-                      <span>Search 2,400+ Spaces</span>
+                      <span>Search {listings.length > 0 ? listings.length : 15}+ Verified Spaces</span>
                     </button>
                   </div>
 
@@ -1124,11 +1126,18 @@ export const LandingPage: React.FC = () => {
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
               <button
-                onClick={() => setPersona('business')}
-                className="bg-forest hover:bg-forest-light text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-soft transition-all flex items-center gap-2"
+                onClick={() => seedDemoListings()}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-soft transition-all flex items-center gap-2"
+              >
+                <Sparkles className="w-4 h-4 text-amber-light" />
+                <span>Seed 15 Verified Spaces</span>
+              </button>
+              <button
+                onClick={() => openOnboardingModal('host')}
+                className="bg-forest hover:bg-forest-light text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-soft transition-all flex items-center gap-2"
               >
                 <PlusCircle className="w-4 h-4" />
-                <span>List Your Property as Host</span>
+                <span>Host Onboarding</span>
               </button>
               <button
                 onClick={() => setCurrentView('marketplace')}
