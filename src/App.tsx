@@ -11,10 +11,21 @@ import { ListingDetailPage } from './views/ListingDetailPage';
 import { SavedPage } from './views/SavedPage';
 import { BusinessPortal } from './views/BusinessPortal';
 import { AdminPortal } from './views/AdminPortal';
+import { OAuthConsentPage } from './views/OAuthConsentPage';
 import { AuthModal } from './components/auth/AuthModal';
 
 const AppContent: React.FC = () => {
   const { persona, currentView } = useApp();
+
+  // 0. Dedicated OAuth 2.1 Consent View for Third-Party Applications & MCP Clients
+  if (currentView === 'oauth-consent') {
+    return (
+      <div className="min-h-screen bg-ivory flex flex-col font-sans text-neutral-900 selection:bg-amber-soft selection:text-stone-900 overflow-x-hidden">
+        <OAuthConsentPage />
+        <AuthModal />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-ivory flex flex-col font-sans text-neutral-900 selection:bg-amber-soft selection:text-stone-900 overflow-x-hidden">

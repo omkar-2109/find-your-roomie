@@ -136,11 +136,21 @@ export const Footer: React.FC = () => {
             <span>© 2026 Roomzy Technologies Private Limited. All rights reserved.</span>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6">
             <button onClick={() => setLegalModal('terms')} className="hover:text-white transition-colors">Terms of Service</button>
             <button onClick={() => setLegalModal('privacy')} className="hover:text-white transition-colors">Privacy Policy</button>
             <button onClick={() => setLegalModal('safety')} className="hover:text-white transition-colors">Safety Guidelines</button>
             <button onClick={() => setLegalModal('rera')} className="hover:text-white transition-colors">RERA Compliance</button>
+            <button 
+              onClick={() => {
+                setCurrentView('oauth-consent');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }} 
+              className="text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1 font-medium bg-forest-800/80 px-2.5 py-1 rounded-full border border-forest-700"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span>OAuth Consent UI</span>
+            </button>
           </div>
         </div>
 

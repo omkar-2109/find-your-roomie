@@ -13,7 +13,7 @@ import { INITIAL_LISTINGS, INITIAL_VERIFICATIONS } from '../data/mockListings';
 import { supabase } from '../lib/supabase';
 
 export type PersonaType = 'consumer' | 'business' | 'admin';
-export type ViewType = 'landing' | 'marketplace' | 'listing-detail' | 'saved' | 'find-together';
+export type ViewType = 'landing' | 'marketplace' | 'listing-detail' | 'saved' | 'find-together' | 'oauth-consent';
 
 interface FilterState {
   searchQuery: string;
@@ -130,14 +130,21 @@ export const DEMO_USERS: Record<'tenant' | 'host' | 'admin', User> = {
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const VALID_VIEWS: ViewType[] = ['landing', 'marketplace', 'listing-detail', 'saved', 'find-together'];
+  const VALID_VIEWS: ViewType[] = ['landing', 'marketplace', 'listing-detail', 'saved', 'find-together', 'oauth-consent'];
   const VALID_PERSONAS: PersonaType[] = ['consumer', 'business', 'admin'];
 
-  // Initialize from URL search params if present with validation
+  // Initialize from URL pathname or search params with validation
   const getInitialState = () => {
+    const cleanPath = window.location.pathname.replace(/\/+/g, '/');
+    const isConsentPath = cleanPath === '/oauth/consent' || cleanPath.startsWith('/oauth/consent');
     const params = new URLSearchParams(window.location.search);
     const rawP = params.get('persona') as PersonaType;
     const rawV = params.get('view') as ViewType;
+
+    if (isConsentPath || rawV === 'oauth-consent') {
+      return { p: 'consumer' as PersonaType, v: 'oauth-consent' as ViewType, id: null };
+    }
+
     const p = VALID_PERSONAS.includes(rawP) ? rawP : 'consumer';
     const v = VALID_VIEWS.includes(rawV) ? rawV : 'landing';
     const id = params.get('id') || (v === 'listing-detail' ? 'blr-room-1' : null);
@@ -155,10 +162,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Sync with browser Back and Forward navigation (popstate)
   useEffect(() => {
     const handlePopState = () => {
+      const cleanPath = window.location.pathname.replace(/\/+/g, '/');
+      const isConsentPath = cleanPath === '/oauth/consent' || cleanPath.startsWith('/oauth/consent');
       const params = new URLSearchParams(window.location.search);
       const rawP = params.get('persona') as PersonaType;
       const rawV = params.get('view') as ViewType;
       const id = params.get('id');
+
+      if (isConsentPath || rawV === 'oauth-consent') {
+        setCurrentViewState('oauth-consent');
+        return;
+      }
 
       if (rawP && VALID_PERSONAS.includes(rawP)) {
         setPersonaState(rawP);
@@ -357,7 +371,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const setCurrentView = (v: ViewType) => {
     setCurrentViewState(v);
     const url = new URL(window.location.href);
-    url.searchParams.set('view', v);
+    if (v === 'oauth-consent') {
+      url.pathname = '/oauth/consent';
+      url.searchParams.delete('view');
+    } else {
+      if (url.pathname.includes('/oauth/consent')) {
+        url.pathname = '/';
+      }
+      url.searchParams.set('view', v);
+    }
     if (v !== 'listing-detail') url.searchParams.delete('id');
     window.history.pushState({}, '', url.toString());
   };
