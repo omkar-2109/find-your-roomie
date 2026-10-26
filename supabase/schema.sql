@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   role TEXT NOT NULL DEFAULT 'tenant' CHECK (role IN ('tenant', 'host', 'admin')),
   company TEXT,
   city TEXT DEFAULT 'Bengaluru',
+  user_category TEXT DEFAULT 'working_professional',
   is_aadhaar_verified BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()

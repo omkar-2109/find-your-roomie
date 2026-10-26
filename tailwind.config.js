@@ -18,6 +18,7 @@ export default {
           200: '#C2DFD4',
           800: '#14342D',
           900: '#0F2621',
+          950: '#071813',
         },
         ivory: {
           DEFAULT: '#F7F5F0', // Refined warm ivory

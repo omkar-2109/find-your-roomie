@@ -56,46 +56,46 @@ export const PersonaHeader: React.FC = () => {
     );
   }
 
-  // Public Consumer Announcement & Utility Bar (Clean Luxury Header, No Clunky Dropdowns)
+  // Public Consumer Announcement & Utility Bar (Clean Luxury Header, Guaranteed High-Contrast Visibility)
   return (
-    <div className="bg-forest-950 text-ivory-dark border-b border-forest-900 text-xs px-3 sm:px-6 py-1.5 transition-all overflow-hidden">
+    <div className="bg-[#0B1E19] text-white border-b border-forest-800 text-xs px-3 sm:px-6 py-2 transition-all shadow-sm">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-3">
         
         {/* Left: Consumer Value Highlight */}
         <div className="flex items-center gap-2 overflow-hidden text-[11px]">
-          <span className="inline-flex items-center gap-1 bg-amber/20 text-amber-light font-bold px-2 py-0.5 rounded-full text-[10px] shrink-0 border border-amber/30">
-            <Sparkles className="w-3 h-3 text-amber" />
+          <span className="inline-flex items-center gap-1 bg-amber-400 text-stone-950 font-extrabold px-2.5 py-0.5 rounded-full text-[10px] shrink-0 shadow-xs">
+            <Sparkles className="w-3 h-3 text-stone-950" />
             ZERO BROKERAGE
           </span>
-          <span className="text-ivory-warm/90 font-medium truncate hidden sm:inline">
+          <span className="text-white/95 font-medium truncate hidden sm:inline">
             1-Month Deposit • Fully Furnished Flats with Appliances • Move in within 48h
           </span>
         </div>
 
-        {/* Right: Direct Utilities & Trust Verification (No Native Dropdowns) */}
-        <div className="flex items-center gap-3 sm:gap-4 shrink-0 text-[11px]">
+        {/* Right: Direct Utilities & Trust Verification */}
+        <div className="flex items-center gap-3 sm:gap-4 shrink-0 text-[11px] text-white">
           
           {/* Identity Verification Pill / Trigger */}
           {currentUser?.isAadhaarVerified ? (
-            <span className="inline-flex items-center gap-1 bg-emerald-950/80 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-semibold text-[10px]">
-              <ShieldCheck className="w-3 h-3 text-emerald-400" />
+            <span className="inline-flex items-center gap-1.5 bg-emerald-950 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/50 font-bold text-[10px] shadow-xs">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
               <span>Aadhaar Verified</span>
             </span>
           ) : currentUser ? (
             <button
               onClick={() => openOnboardingModal(currentUser.role === 'host' ? 'host' : 'tenant')}
-              className="inline-flex items-center gap-1 bg-amber/20 hover:bg-amber/30 text-amber-light px-2.5 py-0.5 rounded-full border border-amber/40 font-bold text-[10px] transition-colors"
+              className="inline-flex items-center gap-1 bg-amber-400 hover:bg-amber-300 text-stone-950 px-2.5 py-0.5 rounded-full font-bold text-[10px] shadow-xs transition-all"
             >
-              <Sparkles className="w-3 h-3 text-amber" />
+              <Sparkles className="w-3 h-3 text-stone-950" />
               <span>Verify Profile (+Badge)</span>
             </button>
           ) : (
             <button
               onClick={() => openOnboardingModal('tenant')}
-              className="hidden sm:inline-flex items-center gap-1 text-ivory-warm/90 hover:text-white font-semibold transition-colors"
+              className="inline-flex items-center gap-1 text-white hover:text-amber-light font-bold transition-colors"
             >
-              <ShieldCheck className="w-3 h-3 text-emerald-400" />
-              <span>Get Verified</span>
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Verify Profile</span>
             </button>
           )}
 
@@ -108,18 +108,18 @@ export const PersonaHeader: React.FC = () => {
                 openOnboardingModal('host');
               }
             }}
-            className="flex items-center gap-1 text-ivory-warm hover:text-amber-light font-semibold transition-colors"
+            className="flex items-center gap-1 text-white hover:text-amber-light font-bold transition-colors"
           >
-            <Building2 className="w-3 h-3 text-amber" />
+            <Building2 className="w-3.5 h-3.5 text-amber-400" />
             <span>List Your Space</span>
           </button>
 
           {/* Support Helpline */}
           <a 
             href="tel:+918069001234"
-            className="hidden lg:flex items-center gap-1 text-ivory-warm/80 hover:text-white transition-colors"
+            className="hidden lg:flex items-center gap-1 text-white/90 hover:text-white font-medium transition-colors"
           >
-            <PhoneCall className="w-3 h-3 text-emerald-400" />
+            <PhoneCall className="w-3.5 h-3.5 text-emerald-400" />
             <span>Support: +91 80 6900 1234</span>
           </a>
 

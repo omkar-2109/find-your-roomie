@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
-import { MetroCity, LifestylePreferences } from '../../types';
+import { MetroCity, LifestylePreferences, UserCategory } from '../../types';
 import { uploadVerificationDoc } from '../../services/storageService';
 import { supabase } from '../../lib/supabase';
 import { 
@@ -20,7 +20,8 @@ import {
   FileCheck, 
   AlertCircle,
   Loader2,
-  Check
+  Check,
+  GraduationCap
 } from 'lucide-react';
 
 interface OnboardingModalProps {
@@ -34,6 +35,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [role, setRole] = useState<'tenant' | 'host'>(currentUser?.role === 'host' ? 'host' : initialRole);
+  const [userCategory, setUserCategory] = useState<UserCategory>(currentUser?.userCategory || 'working_professional');
   
   // Step 1: Preferences
   const [city, setCity] = useState<MetroCity>(currentUser?.city || filters.city);
@@ -82,6 +84,12 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
         docUrl = await uploadVerificationDoc(selectedFile, currentUser.id);
       }
 
+      // Persist to device localStorage
+      try {
+        localStorage.setItem('roomzy_preferred_city', city);
+        localStorage.setItem('roomzy_user_category', userCategory);
+      } catch {}
+
       // Update Supabase profiles table if authenticated
       if (currentUser?.id) {
         const { error: profileError } = await supabase
@@ -90,6 +98,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
             role: role,
             city: city,
             company: company,
+            user_category: userCategory,
             is_aadhaar_verified: true,
             updated_at: new Date().toISOString()
           })
@@ -107,6 +116,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
           role: role,
           city: city,
           company: company,
+          userCategory: userCategory,
           isAadhaarVerified: true
         });
       }
@@ -219,6 +229,38 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
                       <p className="text-[10px] text-neutral-500">Listing room, flat, or PG</p>
                     </div>
                   </button>
+                </div>
+              </div>
+
+              {/* User Category Selection */}
+              <div>
+                <label className="block font-bold text-neutral-700 mb-1.5">
+                  Your Category & Occupation Status
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: 'student', title: 'Student', subtitle: 'College / University / Intern', icon: '🎓' },
+                    { id: 'working_professional', title: 'Working Professional', subtitle: 'Tech / Corporate / Healthcare', icon: '💼' },
+                    { id: 'job_seeker', title: 'Job Seeker / Fresher', subtitle: 'Relocating / Interviewing', icon: '🔍' },
+                    { id: 'founder_freelancer', title: 'Founder / Freelancer', subtitle: 'Startup / Digital Nomad', icon: '🚀' }
+                  ].map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setUserCategory(cat.id as UserCategory)}
+                      className={`p-2.5 rounded-2xl border text-left transition-all flex items-start gap-2.5 ${
+                        userCategory === cat.id
+                          ? 'border-forest bg-forest/5 ring-2 ring-forest/20 shadow-xs'
+                          : 'border-stone-200 hover:bg-stone-50 bg-white'
+                      }`}
+                    >
+                      <span className="text-xl shrink-0 p-1 rounded-xl bg-stone-100">{cat.icon}</span>
+                      <div>
+                        <p className="font-bold text-neutral-900 text-xs leading-tight">{cat.title}</p>
+                        <p className="text-[10px] text-neutral-500 leading-tight mt-0.5">{cat.subtitle}</p>
+                      </div>
+                    </button>
+                  ))}
                 </div>
               </div>
 

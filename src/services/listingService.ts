@@ -57,7 +57,7 @@ function mapRowToListing(row: any): Listing {
       { name: 'Supermarket & Cafes', distance: '300 m', travelTime: '2 mins' }
     ],
     isVerified: true,
-    featured: false,
+    featured: row.featured !== undefined ? Boolean(row.featured) : true,
   };
 }
 

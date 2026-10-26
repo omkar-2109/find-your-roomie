@@ -366,14 +366,15 @@ export const LandingPage: React.FC = () => {
     setCurrentView('marketplace');
   };
 
-  // Filtered listings
+  // Filtered listings for Handpicked Properties
   const activeCityListings = listings.filter(l => l.city === filters.city);
-  const featuredListings = (activeCityListings.length > 0 ? activeCityListings : listings)
+  const displayPool = activeCityListings.length > 0 ? activeCityListings : listings;
+  const featuredListings = displayPool
     .filter(l => {
-      if (featuredTab === 'all') return l.featured;
+      if (featuredTab === 'all') return true;
       return l.category === featuredTab;
     })
-    .slice(0, 3);
+    .slice(0, 6);
 
   // Roommate profiles
   const roommateListings = listings.filter(l => l.category === 'flatmates' || l.category === 'wanted').slice(0, 3);
@@ -1048,6 +1049,44 @@ export const LandingPage: React.FC = () => {
           5. FEATURED ROOMS & ACCOMMODATION
           ========================================================================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* City Switcher Pill Bar (Persists to device & profile) */}
+        <div className="mb-6 flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none max-w-full">
+            <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider shrink-0 flex items-center gap-1 mr-1">
+              <MapPin className="w-3.5 h-3.5 text-forest" />
+              Explore City:
+            </span>
+            {INDIAN_METROS.map((metro) => {
+              const count = listings.filter(l => l.city === metro.name).length;
+              const isActive = filters.city === metro.name;
+              return (
+                <button
+                  key={metro.name}
+                  onClick={() => {
+                    updateFilter('city', metro.name);
+                    setHeroCity(metro.name);
+                  }}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${
+                    isActive
+                      ? 'bg-forest text-white shadow-soft scale-105 ring-2 ring-forest/20'
+                      : 'bg-white hover:bg-forest-50 text-neutral-700 border border-ivory-border shadow-2xs'
+                  }`}
+                >
+                  <span>{metro.name}</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-semibold ${
+                    isActive ? 'bg-white/20 text-white' : 'bg-neutral-100 text-neutral-500'
+                  }`}>
+                    {count > 0 ? count : 3}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <span className="text-[11px] text-neutral-500 hidden md:inline">
+            📍 City preference saved to your device & profile
+          </span>
+        </div>
+
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-amber-hover block">

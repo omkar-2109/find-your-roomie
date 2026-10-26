@@ -13,6 +13,12 @@ export type MetroCity =
   | 'Pune' 
   | 'Hyderabad';
 
+export type UserCategory = 
+  | 'student' 
+  | 'working_professional' 
+  | 'job_seeker' 
+  | 'founder_freelancer';
+
 export interface CostBreakdown {
   rent: number;
   deposit: number;
@@ -121,6 +127,7 @@ export interface User {
   company?: string;
   isAadhaarVerified: boolean;
   city: MetroCity;
+  userCategory?: UserCategory;
 }
 
 export type PendingActionType = 'visit' | 'inquiry' | 'save' | 'host';

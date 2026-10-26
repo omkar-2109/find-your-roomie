@@ -135,11 +135,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { p, v, id };
   };
 
+  const getInitialFilters = (): FilterState => {
+    try {
+      const savedCity = localStorage.getItem('roomzy_preferred_city') as MetroCity;
+      if (savedCity && ['Bengaluru', 'Mumbai', 'Delhi-NCR', 'Pune', 'Hyderabad'].includes(savedCity)) {
+        return { ...DEFAULT_FILTERS, city: savedCity };
+      }
+    } catch {
+      // Fallback
+    }
+    return DEFAULT_FILTERS;
+  };
+
   const initial = getInitialState();
   const [persona, setPersonaState] = useState<PersonaType>(initial.p);
   const [currentView, setCurrentViewState] = useState<ViewType>(initial.v);
   const [selectedListingId, setSelectedListingId] = useState<string | null>(initial.id);
-  const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
+  const [filters, setFilters] = useState<FilterState>(getInitialFilters);
   const [isMapSplitOpen, setIsMapSplitOpen] = useState<boolean>(true);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState<boolean>(false);
 
@@ -245,10 +257,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             avatar: profile.avatar_url || user.avatar,
             company: profile.company || user.company,
             city: profile.city || user.city,
-            isAadhaarVerified: Boolean(profile.is_aadhaar_verified)
+            isAadhaarVerified: Boolean(profile.is_aadhaar_verified),
+            userCategory: profile.user_category || user.userCategory
           };
           setCurrentUser(updatedUser);
           localStorage.setItem('roomzy_user', JSON.stringify(updatedUser));
+          if (profile.city) {
+            localStorage.setItem('roomzy_preferred_city', profile.city);
+            setFilters(prev => ({ ...prev, city: profile.city }));
+          }
         }
       } catch {
         // Ignored if profiles table not created yet
@@ -474,10 +491,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateFilter = <K extends keyof FilterState>(key: K, value: FilterState[K]) => {
     setFilters(prev => ({ ...prev, [key]: value }));
+    if (key === 'city' && typeof value === 'string') {
+      try {
+        localStorage.setItem('roomzy_preferred_city', value);
+      } catch (e) {
+        console.warn('Could not save preferred city:', e);
+      }
+      if (currentUser?.id) {
+        supabase
+          .from('profiles')
+          .update({ city: value, updated_at: new Date().toISOString() })
+          .eq('id', currentUser.id)
+          .then(({ error }) => {
+            if (error) console.warn('Could not update profile city:', error.message);
+          });
+        setCurrentUser(prev => prev ? { ...prev, city: value as MetroCity } : null);
+      }
+    }
   };
 
   const resetFilters = () => {
-    setFilters(DEFAULT_FILTERS);
+    let savedCity: MetroCity = 'Bengaluru';
+    try {
+      const stored = localStorage.getItem('roomzy_preferred_city') as MetroCity;
+      if (stored && ['Bengaluru', 'Mumbai', 'Delhi-NCR', 'Pune', 'Hyderabad'].includes(stored)) {
+        savedCity = stored;
+      }
+    } catch {}
+    setFilters({ ...DEFAULT_FILTERS, city: savedCity });
   };
 
   const setPersona = (p: PersonaType) => {
