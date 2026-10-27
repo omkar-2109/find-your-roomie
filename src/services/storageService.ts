@@ -60,7 +60,7 @@ export async function uploadAvatar(file: File, userId: string): Promise<string> 
 }
 
 /**
- * Upload an identity verification document (Aadhaar / Passport / Utility Bill) to Supabase Storage.
+ * Upload an agent/host credential document (RERA / Broker License / Deed / Utility Bill) to Supabase Storage.
  * Saves file under: verifications/${userId}/${Date.now()}-${file.name}
  * Returns public URL.
  */

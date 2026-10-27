@@ -35,8 +35,8 @@ export const Footer: React.FC = () => {
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-semibold text-white text-sm">Aadhaar & Work Verified</h4>
-              <p className="text-xs text-ivory-warm/70 mt-1">Every profile undergoes digital KYC and corporate email domain checks.</p>
+              <h4 className="font-semibold text-white text-sm">Agent & Work/Edu Verified</h4>
+              <p className="text-xs text-ivory-warm/70 mt-1">Listers submit credentials while flatmates verify via corporate or college email with zero document uploads.</p>
             </div>
           </div>
 
@@ -223,7 +223,7 @@ export const Footer: React.FC = () => {
                   <span>Privacy Policy & Digital Data Protection (DPDP)</span>
                 </div>
                 <p>
-                  <strong>1. Masked Identity Checks:</strong> Roomzy utilizes government-approved masked verification for Aadhaar. Only the last 4 digits are stored, and raw biometric or UID data is never recorded.
+                  <strong>1. Zero Document Seeker Policy & Verified Credentials:</strong> Roomzy never requires tenants or room seekers to submit government IDs or biometric records. Property hosts and agents verify via official RERA registrations, broker licenses, or utility bills.
                 </p>
                 <p>
                   <strong>2. Locality Radar Privacy:</strong> Exact building numbers and flat units are never broadcast publicly. Exact coordinates are unveiled only after an in-person or video tour is mutually confirmed by both parties.

@@ -76,10 +76,16 @@ export const PersonaHeader: React.FC = () => {
         <div className="flex items-center gap-3 sm:gap-4 shrink-0 text-[11px] text-white">
           
           {/* Identity Verification Pill / Trigger */}
-          {currentUser?.isAadhaarVerified ? (
+          {(currentUser?.isWorkVerified || currentUser?.isCollegeVerified || currentUser?.isAgentVerified || currentUser?.isAadhaarVerified) ? (
             <span className="inline-flex items-center gap-1.5 bg-emerald-950 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/50 font-bold text-[10px] shadow-xs">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Aadhaar Verified</span>
+              <span>
+                {currentUser.isAgentVerified
+                  ? 'Verified Agent'
+                  : currentUser.isCollegeVerified || currentUser.verificationBadge === 'Verified Student'
+                    ? 'Verified Student'
+                    : 'Verified Pro'}
+              </span>
             </span>
           ) : currentUser ? (
             <button

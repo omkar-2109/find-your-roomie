@@ -56,8 +56,8 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ isMobileModal, onC
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-forest-emerald" />
           <div>
-            <span className="block text-xs font-bold text-forest">Aadhaar Verified</span>
-            <span className="block text-[10px] text-neutral-500">Government KYC checked</span>
+            <span className="block text-xs font-bold text-forest">Verified Only</span>
+            <span className="block text-[10px] text-neutral-500">Verified agents, hosts & seekers</span>
           </div>
         </div>
         <input 

@@ -179,7 +179,7 @@ export const OAuthConsentPage: React.FC = () => {
       case 'profile':
         return {
           title: 'View your Profile Details',
-          desc: 'Access your full name, avatar photo, bio, and Aadhaar verified status',
+          desc: 'Access your full name, avatar photo, bio, and verified member badge',
           icon: <UserIcon className="w-4 h-4 text-emerald-600" />
         };
       case 'email':
@@ -349,7 +349,7 @@ export const OAuthConsentPage: React.FC = () => {
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5">
                         <span className="font-semibold text-sm text-stone-900 truncate">{currentUser.name}</span>
-                        {currentUser.isAadhaarVerified && (
+                        {(currentUser.isWorkVerified || currentUser.isCollegeVerified || currentUser.isAgentVerified || currentUser.isAadhaarVerified) && (
                           <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-800 bg-emerald-100/90 px-1.5 py-0.2 rounded-full">
                             <ShieldCheck className="w-3 h-3 text-emerald-700" /> Verified
                           </span>
@@ -427,7 +427,7 @@ export const OAuthConsentPage: React.FC = () => {
               <div className="p-3 bg-stone-100/70 rounded-xl border border-stone-200/50 flex items-start gap-2 text-[11px] text-stone-600 leading-normal">
                 <Info className="w-4 h-4 text-stone-400 shrink-0 mt-0.5" />
                 <span>
-                  Roomzy never exposes your bank details, credit history, or Aadhaar identity documents to third-party applications. You can revoke access at any time.
+                  Roomzy never exposes your bank details, financial records, or private contact details to third-party applications. You can revoke access at any time.
                 </span>
               </div>
 

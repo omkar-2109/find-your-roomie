@@ -42,11 +42,12 @@ export interface HostProfile {
   id: string;
   name: string;
   avatar: string;
-  role: 'Flatmate' | 'Owner' | 'PG Manager' | 'Room Seeker';
+  role: 'Flatmate' | 'Owner' | 'PG Manager' | 'Room Seeker' | 'Agent';
   age?: number;
   occupation?: string;
   company?: string;
-  verifiedGovtId: boolean;
+  verifiedGovtId?: boolean;
+  isAgentVerified?: boolean;
   verificationBadge: string;
   responseRate: string;
   joinedYear: string;
@@ -110,7 +111,7 @@ export interface VerificationRequest {
   id: string;
   userName: string;
   userRole: string;
-  idType: 'Aadhaar (Masked)' | 'Passport' | 'Electricity Bill';
+  idType: 'RERA Registration' | 'Real Estate Broker License' | 'Property Deed / Tax Receipt' | 'Electricity Bill' | 'Government ID' | 'Aadhaar (Masked)' | 'Passport';
   submittedDate: string;
   documentPreview: string;
   status: 'Pending' | 'Approved' | 'Rejected';
@@ -125,7 +126,14 @@ export interface User {
   avatar: string;
   role: 'tenant' | 'host' | 'admin';
   company?: string;
-  isAadhaarVerified: boolean;
+  college?: string;
+  workEmail?: string;
+  collegeEmail?: string;
+  isWorkVerified?: boolean;
+  isCollegeVerified?: boolean;
+  isAgentVerified?: boolean;
+  isAadhaarVerified?: boolean;
+  verificationBadge?: 'Verified Professional' | 'Verified Student' | 'Verified Agent' | 'Verified Property Owner' | 'Unverified' | string;
   city: MetroCity;
   userCategory?: UserCategory;
 }
@@ -152,7 +160,11 @@ export interface FlatmateProfile {
   occupation: string;
   userCategory: UserCategory;
   companyOrCollege: string;
-  isAadhaarVerified: boolean;
+  workOrCollegeEmail?: string;
+  isWorkVerified?: boolean;
+  isCollegeVerified?: boolean;
+  isAadhaarVerified?: boolean;
+  verificationBadge?: 'Verified Professional' | 'Verified Student' | 'Unverified' | string;
   lifestyle: LifestylePreferences;
   bio: string;
   compatibilityScore?: number;

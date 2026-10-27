@@ -110,6 +110,9 @@ interface AppContextType {
   approveVerification: (id: string) => void;
   rejectVerification: (id: string) => void;
   updateInquiryStatus: (id: string, status: InquiryMessage['status']) => void;
+  sendWorkOrCollegeOtp: (email: string, type: 'work' | 'college') => Promise<{ success: boolean; code?: string; error?: string }>;
+  verifyWorkOrCollegeOtp: (email: string, otp: string, type: 'work' | 'college') => Promise<{ success: boolean; error?: string }>;
+  submitAgentVerification: (request: { userName: string; userRole: string; idType: VerificationRequest['idType']; documentPreview: string; notes?: string }) => void;
 
   // In-App Direct Chat Hub
   conversations: Conversation[];
@@ -264,7 +267,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         avatar: metadata.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
         role: metadata.role || 'tenant',
         company: metadata.company || 'Verified Resident',
-        isAadhaarVerified: Boolean(metadata.is_aadhaar_verified),
+        workEmail: metadata.work_email,
+        collegeEmail: metadata.college_email,
+        isWorkVerified: Boolean(metadata.is_work_verified),
+        isCollegeVerified: Boolean(metadata.is_college_verified),
+        isAgentVerified: Boolean(metadata.is_agent_verified),
+        verificationBadge: metadata.verification_badge || (metadata.is_aadhaar_verified ? 'Verified Professional' : 'Unverified'),
+        isAadhaarVerified: Boolean(metadata.is_aadhaar_verified || metadata.is_work_verified || metadata.is_college_verified || metadata.is_agent_verified),
         city: metadata.city || filters.city
       };
 
@@ -287,7 +296,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             avatar: profile.avatar_url || user.avatar,
             company: profile.company || user.company,
             city: profile.city || user.city,
-            isAadhaarVerified: Boolean(profile.is_aadhaar_verified),
+            workEmail: profile.work_email || user.workEmail,
+            collegeEmail: profile.college_email || user.collegeEmail,
+            isWorkVerified: Boolean(profile.is_work_verified || user.isWorkVerified),
+            isCollegeVerified: Boolean(profile.is_college_verified || user.isCollegeVerified),
+            isAgentVerified: Boolean(profile.is_agent_verified || user.isAgentVerified),
+            verificationBadge: profile.verification_badge || user.verificationBadge,
+            isAadhaarVerified: Boolean(profile.is_aadhaar_verified || profile.is_work_verified || profile.is_college_verified || profile.is_agent_verified),
             userCategory: profile.user_category || user.userCategory
           };
           setCurrentUser(updatedUser);
@@ -768,7 +783,145 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Scheduled Visits & Inquiries
   const [scheduledVisits, setScheduledVisits] = useState<ScheduledVisit[]>([]);
   const [inquiries, setInquiries] = useState<InquiryMessage[]>([]);
-  const [verifications, setVerifications] = useState<VerificationRequest[]>([]);
+  const [activeOtps, setActiveOtps] = useState<Record<string, string>>({});
+
+  const INITIAL_AGENT_VERIFICATIONS: VerificationRequest[] = [
+    {
+      id: 'ver-agent-1',
+      userName: 'Kunal Kapoor (Prime Living Realty)',
+      userRole: 'Real Estate Agent',
+      idType: 'RERA Registration',
+      submittedDate: '2 hours ago',
+      documentPreview: 'RERA-KA-PRM-2024-08912',
+      status: 'Pending',
+      notes: 'Karnataka RERA Certified Commercial & Residential Broker'
+    },
+    {
+      id: 'ver-agent-2',
+      userName: 'Sunita Rao (Stanza Living Partners)',
+      userRole: 'PG Manager',
+      idType: 'Property Deed / Tax Receipt',
+      submittedDate: 'Yesterday',
+      documentPreview: 'BBMP-KHATA-A-2023-4412.pdf',
+      status: 'Pending',
+      notes: 'Commercial PG License & Electricity Sub-meter Proof'
+    },
+    {
+      id: 'ver-agent-3',
+      userName: 'Vikram Joshi (Urban Habitat)',
+      userRole: 'Property Owner',
+      idType: 'Electricity Bill',
+      submittedDate: '3 days ago',
+      documentPreview: 'BESCOM-RR-NO-E1209384.pdf',
+      status: 'Approved',
+      notes: 'Verified Property Owner in Koramangala 4th Block'
+    }
+  ];
+
+  const [verifications, setVerifications] = useState<VerificationRequest[]>(INITIAL_AGENT_VERIFICATIONS);
+
+  const sendWorkOrCollegeOtp = async (email: string, type: 'work' | 'college'): Promise<{ success: boolean; code?: string; error?: string }> => {
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed || !trimmed.includes('@')) {
+      return { success: false, error: 'Please enter a valid email address.' };
+    }
+
+    const domain = trimmed.split('@')[1];
+
+    if (type === 'college') {
+      const isEdu = domain.endsWith('.edu') || 
+                    domain.endsWith('.ac.in') || 
+                    domain.endsWith('.edu.in') || 
+                    domain.includes('iit') || 
+                    domain.includes('bits') || 
+                    domain.includes('mit') || 
+                    domain.includes('stanford') ||
+                    domain.includes('university') ||
+                    domain.includes('college');
+      if (!isEdu) {
+        return { 
+          success: false, 
+          error: 'Please enter a valid university/college domain (e.g. name@university.edu or name@college.ac.in).' 
+        };
+      }
+    } else {
+      const freeProviders = ['gmail.com', 'yahoo.com', 'yahoo.co.in', 'outlook.com', 'hotmail.com', 'icloud.com', 'rediffmail.com', 'zoho.com', 'proton.me'];
+      if (freeProviders.includes(domain)) {
+        return { 
+          success: false, 
+          error: 'Please use your official company work email (e.g. name@company.com), not a personal Gmail/Yahoo address.' 
+        };
+      }
+    }
+
+    // Generate simulated 6-digit OTP code (returns code for easy dev/demo entry)
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setActiveOtps(prev => ({ ...prev, [trimmed]: code }));
+    console.log(`[Roomzy Trust Verification] 6-digit OTP code for ${trimmed}: ${code}`);
+
+    return { success: true, code };
+  };
+
+  const verifyWorkOrCollegeOtp = async (email: string, otp: string, type: 'work' | 'college'): Promise<{ success: boolean; error?: string }> => {
+    const trimmed = email.trim().toLowerCase();
+    const token = otp.trim();
+    const expected = activeOtps[trimmed];
+
+    // Allow expected code OR '123456' as master test OTP
+    if (!token || (expected && token !== expected && token !== '123456') || (!expected && token !== '123456')) {
+      return { success: false, error: 'Invalid verification code. Please check code or enter 123456.' };
+    }
+
+    const badgeName = type === 'work' ? 'Verified Professional' : 'Verified Student';
+
+    if (currentUser) {
+      const updatedUser: User = {
+        ...currentUser,
+        workEmail: type === 'work' ? trimmed : currentUser.workEmail,
+        collegeEmail: type === 'college' ? trimmed : currentUser.collegeEmail,
+        isWorkVerified: type === 'work' ? true : currentUser.isWorkVerified,
+        isCollegeVerified: type === 'college' ? true : currentUser.isCollegeVerified,
+        verificationBadge: badgeName,
+        isAadhaarVerified: true
+      };
+
+      setCurrentUser(updatedUser);
+      try {
+        localStorage.setItem('roomzy_user', JSON.stringify(updatedUser));
+      } catch {}
+
+      if (currentUser.id) {
+        try {
+          await supabase.from('profiles').update({
+            work_email: updatedUser.workEmail,
+            college_email: updatedUser.collegeEmail,
+            is_work_verified: updatedUser.isWorkVerified,
+            is_college_verified: updatedUser.isCollegeVerified,
+            verification_badge: badgeName,
+            updated_at: new Date().toISOString()
+          }).eq('id', currentUser.id);
+        } catch (e) {
+          console.warn('Profile update note:', e);
+        }
+      }
+    }
+
+    return { success: true };
+  };
+
+  const submitAgentVerification = (request: { userName: string; userRole: string; idType: VerificationRequest['idType']; documentPreview: string; notes?: string }) => {
+    const newReq: VerificationRequest = {
+      id: `ver-agent-${Date.now()}`,
+      userName: request.userName,
+      userRole: request.userRole,
+      idType: request.idType,
+      documentPreview: request.documentPreview,
+      submittedDate: 'Just now',
+      status: 'Pending',
+      notes: request.notes
+    };
+    setVerifications(prev => [newReq, ...prev]);
+  };
 
   const bookVisit = async (data: Omit<ScheduledVisit, 'id' | 'createdAt' | 'status'>) => {
     try {
@@ -807,6 +960,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setVerifications(prev => 
       prev.map(v => v.id === id ? { ...v, status: 'Approved' } : v)
     );
+    if (currentUser && currentUser.role === 'host') {
+      const updated: User = {
+        ...currentUser,
+        isAgentVerified: true,
+        verificationBadge: 'Verified Agent'
+      };
+      setCurrentUser(updated);
+      try {
+        localStorage.setItem('roomzy_user', JSON.stringify(updated));
+      } catch {}
+    }
   };
 
   const rejectVerification = (id: string) => {
@@ -877,6 +1041,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       approveVerification,
       rejectVerification,
       updateInquiryStatus,
+      sendWorkOrCollegeOtp,
+      verifyWorkOrCollegeOtp,
+      submitAgentVerification,
 
       // In-App Direct Chat Hub
       conversations,

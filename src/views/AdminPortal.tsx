@@ -41,10 +41,10 @@ export const AdminPortal: React.FC = () => {
             <span className="text-xs text-emerald-300">Roomzy Trust & Safety Desk</span>
           </div>
           <h1 className="font-display font-extrabold text-2xl sm:text-3xl">
-            Identity Verification & Moderation Desk
+            Agent Credentials & Property Verification Desk
           </h1>
           <p className="text-xs text-emerald-200/80">
-            Audit Aadhaar government KYC submissions, property deed proofs, and listing content integrity.
+            Audit RERA registrations, broker licenses, property deeds, and owner utility proofs. Tenants & seekers are verified via institutional email (zero doc uploads).
           </p>
         </div>
 
@@ -60,7 +60,7 @@ export const AdminPortal: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <div className="bg-white p-5 rounded-2xl border border-ivory-border shadow-soft flex items-center justify-between">
           <div>
-            <span className="text-xs text-neutral-500 block mb-1">Pending KYC Reviews</span>
+            <span className="text-xs text-neutral-500 block mb-1">Pending Agent Reviews</span>
             <span className="font-display font-extrabold text-2xl text-amber-hover">{pendingCount}</span>
           </div>
           <div className="w-10 h-10 rounded-xl bg-amber-soft text-amber flex items-center justify-center font-bold">
@@ -70,7 +70,7 @@ export const AdminPortal: React.FC = () => {
 
         <div className="bg-white p-5 rounded-2xl border border-ivory-border shadow-soft flex items-center justify-between">
           <div>
-            <span className="text-xs text-neutral-500 block mb-1">Approved Identities</span>
+            <span className="text-xs text-neutral-500 block mb-1">Approved Agents & Hosts</span>
             <span className="font-display font-extrabold text-2xl text-emerald-700">{approvedCount}</span>
           </div>
           <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
@@ -99,7 +99,7 @@ export const AdminPortal: React.FC = () => {
               : 'bg-white border border-ivory-border text-neutral-600 hover:bg-ivory'
           }`}
         >
-          KYC Verification Queue ({verifications.length})
+          Agent & Lister Credentials Queue ({verifications.length})
         </button>
 
         <button
@@ -120,10 +120,10 @@ export const AdminPortal: React.FC = () => {
           <div className="p-5 border-b border-ivory-border flex items-center justify-between">
             <div>
               <h3 className="font-display font-bold text-base text-neutral-900">
-                Government ID Verification Requests
+                Agent & Property Credential Submissions
               </h3>
               <p className="text-xs text-neutral-500">
-                Digital KYC records masked in compliance with Aadhaar Act & IT Rules 2021.
+                Audited to ensure all property listers, brokers, and PG operators have genuine ownership or RERA licenses.
               </p>
             </div>
           </div>
@@ -132,9 +132,9 @@ export const AdminPortal: React.FC = () => {
             <table className="w-full text-left text-xs">
               <thead className="bg-ivory text-neutral-500 uppercase tracking-wider text-[10px] font-bold border-b border-ivory-border">
                 <tr>
-                  <th className="p-4">User / Lister</th>
+                  <th className="p-4">Agent / Lister</th>
                   <th className="p-4">Role</th>
-                  <th className="p-4">Document Type</th>
+                  <th className="p-4">Credential Type</th>
                   <th className="p-4">Submission Details</th>
                   <th className="p-4">Status</th>
                   <th className="p-4 text-right">Moderation Action</th>
@@ -144,12 +144,19 @@ export const AdminPortal: React.FC = () => {
                 {verifications.map(item => (
                   <tr key={item.id} className="hover:bg-ivory/50 transition-colors">
                     <td className="p-4 font-bold text-neutral-900">{item.userName}</td>
-                    <td className="p-4 text-neutral-600">{item.userRole}</td>
-                    <td className="p-4 font-semibold text-neutral-800">{item.idType}</td>
+                    <td className="p-4 text-neutral-600 font-semibold">{item.userRole}</td>
+                    <td className="p-4 font-semibold text-neutral-800">
+                      <span className="inline-block bg-stone-100 text-stone-800 px-2 py-0.5 rounded-md font-mono text-[11px]">
+                        {item.idType}
+                      </span>
+                    </td>
                     <td className="p-4 text-neutral-500">
                       <div className="font-mono text-[11px] bg-neutral-100 p-1.5 rounded inline-block">
                         {item.documentPreview}
                       </div>
+                      {item.notes && (
+                        <p className="text-[10px] text-stone-500 mt-0.5 italic">{item.notes}</p>
+                      )}
                       <span className="block text-[10px] text-neutral-400 mt-1">{item.submittedDate}</span>
                     </td>
                     <td className="p-4">
@@ -170,7 +177,7 @@ export const AdminPortal: React.FC = () => {
                             onClick={() => approveVerification(item.id)}
                             className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-xs"
                           >
-                            Approve
+                            Approve Agent
                           </button>
                           <button
                             onClick={() => rejectVerification(item.id)}

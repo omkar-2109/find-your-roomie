@@ -75,7 +75,7 @@ const COMPARISON_ROWS: ComparisonRow[] = [
   {
     feature: 'Roommate Vetting',
     traditional: 'Total strangers assigned by brokers without background checks',
-    roomzy: 'Aadhaar KYC + Corporate email verification + Lifestyle matching',
+    roomzy: 'Corporate & college email verification + lifestyle matching',
     highlight: '96%+ Match'
   },
   {
@@ -109,8 +109,8 @@ const HOW_IT_WORKS_STEPS = [
   },
   {
     step: '03',
-    title: '5-Minute Digital KYC',
-    description: 'Complete masked Aadhaar verification and corporate email authentication securely without physical broker paperwork.',
+    title: 'Zero-Document Trust Verification',
+    description: 'No Aadhaar or ID paperwork for seekers. Verify your work or college email in 1 minute to receive your verified credibility badge.',
     icon: FileCheck,
     pill: '100% Paperless'
   },
@@ -321,7 +321,7 @@ const RESIDENT_STORIES: ResidentStory[] = [
     location: 'HSR Layout, Bengaluru',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
     duration: 'Resident for 6 months',
-    quote: 'Scheduled a video walkthrough on a Thursday, verified Aadhaar in 3 minutes, and moved in by Saturday. The high-speed 300 Mbps Wi-Fi, double door fridge, and auto washing machine were fully operational on day one.',
+    quote: 'Scheduled a video walkthrough on a Thursday, verified work email in 1 minute, and moved in by Saturday. The high-speed 300 Mbps Wi-Fi, double door fridge, and auto washing machine were fully operational on day one.',
     rating: 5,
     perk: 'Move-in within 48 hrs'
   }
@@ -1314,7 +1314,7 @@ export const LandingPage: React.FC = () => {
                         </div>
                         <p className="text-xs text-neutral-500">{listing.host.occupation} @ {listing.host.company || 'Tech'}</p>
                         <span className="inline-flex items-center gap-1 text-[10px] text-forest-emerald font-semibold mt-0.5">
-                          <ShieldCheck className="w-3 h-3" /> Aadhaar Verified
+                          <ShieldCheck className="w-3 h-3" /> {listing.host.verificationBadge || 'Verified Profile'}
                         </span>
                       </div>
                     </div>
@@ -1464,7 +1464,7 @@ export const LandingPage: React.FC = () => {
 
                 <div className="flex items-center gap-2 text-[11px] text-ivory-dark/90">
                   <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Both current members verified via Aadhaar & corporate work email.</span>
+                  <span>Both current members verified via corporate work & university emails.</span>
                 </div>
               </div>
             </div>
@@ -1706,13 +1706,13 @@ export const LandingPage: React.FC = () => {
               <ShieldCheck className="w-6 h-6 text-forest-emerald" />
             </div>
             <h3 className="font-display font-bold text-lg text-neutral-900">
-              Aadhaar & KYC Masked Checks
+              Agent & Credential Audits
             </h3>
             <p className="text-xs text-neutral-600 leading-relaxed">
-              Every lister validates their identity with government-approved masked verification. Personal identity is verified while protecting private data.
+              Every property host and agent validates their listing with verifiable broker licenses, RERA IDs, or property deeds. Room seekers verify with work/edu emails without document friction.
             </p>
             <div className="pt-2 text-[11px] font-semibold text-forest-emerald flex items-center gap-1">
-              <Check className="w-3.5 h-3.5" /> 100% verified lister profiles
+              <Check className="w-3.5 h-3.5" /> 100% verified host & flatmate profiles
             </div>
           </div>
 

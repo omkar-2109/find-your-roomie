@@ -21,7 +21,10 @@ import {
   AlertCircle,
   Loader2,
   Check,
-  GraduationCap
+  GraduationCap,
+  Mail,
+  KeyRound,
+  BadgeCheck
 } from 'lucide-react';
 
 interface OnboardingModalProps {
@@ -31,7 +34,15 @@ interface OnboardingModalProps {
 }
 
 export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClose, initialRole = 'tenant' }) => {
-  const { currentUser, setCurrentUser, filters, updateFilter } = useApp();
+  const { 
+    currentUser, 
+    setCurrentUser, 
+    filters, 
+    updateFilter,
+    sendWorkOrCollegeOtp,
+    verifyWorkOrCollegeOtp,
+    submitAgentVerification
+  } = useApp();
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [role, setRole] = useState<'tenant' | 'host'>(currentUser?.role === 'host' ? 'host' : initialRole);
@@ -53,8 +64,26 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
   const [company, setCompany] = useState<string>(currentUser?.company || 'Tech Nomad');
   const [occupation, setOccupation] = useState<string>('Software Engineer');
 
-  // Step 3: Identity Verification
-  const [idType, setIdType] = useState<'Aadhaar' | 'Passport' | 'Electricity Bill'>(role === 'host' ? 'Electricity Bill' : 'Aadhaar');
+  // Step 3: Tenant Email Trust Verification
+  const [verificationType, setVerificationType] = useState<'work' | 'college'>(
+    userCategory === 'student' ? 'college' : 'work'
+  );
+  const [emailInput, setEmailInput] = useState<string>(currentUser?.workEmail || currentUser?.collegeEmail || '');
+  const [otpInput, setOtpInput] = useState<string>('');
+  const [otpSent, setOtpSent] = useState<boolean>(false);
+  const [otpCodeHint, setOtpCodeHint] = useState<string | null>(null);
+  const [isSendingOtp, setIsSendingOtp] = useState<boolean>(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState<boolean>(false);
+  const [emailVerified, setEmailVerified] = useState<boolean>(
+    Boolean(currentUser?.isWorkVerified || currentUser?.isCollegeVerified)
+  );
+  const [emailError, setEmailError] = useState<string | null>(null);
+
+  // Step 3: Agent / Host Credentials
+  const [agentDocType, setAgentDocType] = useState<
+    'RERA Registration' | 'Real Estate Broker License' | 'Property Deed / Tax Receipt' | 'Electricity Bill' | 'Government ID'
+  >('RERA Registration');
+  const [agentRegistrationNumber, setAgentRegistrationNumber] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
@@ -74,14 +103,66 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
     }
   };
 
+  const handleSendOtp = async () => {
+    try {
+      setIsSendingOtp(true);
+      setEmailError(null);
+      const res = await sendWorkOrCollegeOtp(emailInput, verificationType);
+      if (!res.success) {
+        setEmailError(res.error || 'Failed to send verification code.');
+        setIsSendingOtp(false);
+        return;
+      }
+      setOtpSent(true);
+      setOtpCodeHint(res.code || '123456');
+      setIsSendingOtp(false);
+    } catch (err: any) {
+      setEmailError(err.message || 'An error occurred while sending code.');
+      setIsSendingOtp(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    try {
+      setIsVerifyingOtp(true);
+      setEmailError(null);
+      const res = await verifyWorkOrCollegeOtp(emailInput, otpInput, verificationType);
+      if (!res.success) {
+        setEmailError(res.error || 'Invalid verification code.');
+        setIsVerifyingOtp(false);
+        return;
+      }
+      setEmailVerified(true);
+      setIsVerifyingOtp(false);
+    } catch (err: any) {
+      setEmailError(err.message || 'An error occurred while verifying code.');
+      setIsVerifyingOtp(false);
+    }
+  };
+
   const handleCompleteOnboarding = async () => {
     try {
       setIsUploading(true);
       setErrorMessage(null);
 
-      let docUrl = '';
-      if (selectedFile && currentUser) {
-        docUrl = await uploadVerificationDoc(selectedFile, currentUser.id);
+      // If host / agent, submit credentials
+      if (role === 'host') {
+        let docUrl = '';
+        if (selectedFile && currentUser) {
+          try {
+            docUrl = await uploadVerificationDoc(selectedFile, currentUser.id);
+          } catch (e) {
+            console.warn('Doc upload fallback:', e);
+          }
+        }
+
+        submitAgentVerification({
+          userName: currentUser?.name || 'Property Lister',
+          userRole: 'Agent / Host',
+          idType: agentDocType,
+          documentPreview: agentRegistrationNumber.trim() || selectedFile?.name || 'Agent Credential Document',
+          notes: agentRegistrationNumber.trim() ? `Registration: ${agentRegistrationNumber.trim()}` : undefined
+        });
       }
 
       // Persist to device localStorage
@@ -89,6 +170,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
         localStorage.setItem('roomzy_preferred_city', city);
         localStorage.setItem('roomzy_user_category', userCategory);
       } catch {}
+
+      const badgeName = emailVerified
+        ? (verificationType === 'work' ? 'Verified Professional' : 'Verified Student')
+        : (role === 'host' ? 'Pending Review' : 'Unverified');
 
       // Update Supabase profiles table if authenticated
       if (currentUser?.id) {
@@ -99,7 +184,11 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
             city: city,
             company: company,
             user_category: userCategory,
-            is_aadhaar_verified: true,
+            work_email: verificationType === 'work' && emailVerified ? emailInput : undefined,
+            college_email: verificationType === 'college' && emailVerified ? emailInput : undefined,
+            is_work_verified: verificationType === 'work' && emailVerified,
+            is_college_verified: verificationType === 'college' && emailVerified,
+            verification_badge: badgeName,
             updated_at: new Date().toISOString()
           })
           .eq('id', currentUser.id);
@@ -117,7 +206,12 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
           city: city,
           company: company,
           userCategory: userCategory,
-          isAadhaarVerified: true
+          workEmail: verificationType === 'work' && emailVerified ? emailInput : currentUser.workEmail,
+          collegeEmail: verificationType === 'college' && emailVerified ? emailInput : currentUser.collegeEmail,
+          isWorkVerified: verificationType === 'work' && emailVerified ? true : currentUser.isWorkVerified,
+          isCollegeVerified: verificationType === 'college' && emailVerified ? true : currentUser.isCollegeVerified,
+          verificationBadge: badgeName,
+          isAadhaarVerified: emailVerified
         });
       }
 
@@ -131,7 +225,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
 
     } catch (err: any) {
       console.error('Error completing onboarding:', err);
-      setErrorMessage(err.message || 'Failed to submit verification document.');
+      setErrorMessage(err.message || 'Failed to complete profile.');
       setIsUploading(false);
     }
   };
@@ -151,7 +245,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
 
           <div className="flex items-center gap-2 mb-2">
             <span className="bg-amber text-stone-950 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-              Global-Grade KYC & Vibe Match
+              {role === 'host' ? 'Agent & Host Credential Verification' : 'Student & Pro Trust Badging'}
             </span>
             <span className="text-emerald-300 text-xs font-semibold flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5" /> 100% Encrypted
@@ -159,10 +253,12 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
           </div>
 
           <h2 className="font-display font-extrabold text-2xl text-white">
-            {role === 'host' ? 'Host & Space Verification' : 'Tenant Lifestyle & Trust Profile'}
+            {role === 'host' ? 'Agent & Host Verification Desk' : 'Lifestyle & Trust Profile'}
           </h2>
           <p className="text-xs text-white/80 mt-1">
-            Complete in 2 minutes to unlock zero-deposit privileges and algorithmic flatmate matching.
+            {role === 'host'
+              ? 'Provide broker or property credentials to receive your verified lister badge.'
+              : 'Zero documents required. Connect your work or college email for verified flatmate privileges.'}
           </p>
 
           {/* Stepper Progress Indicator */}
@@ -179,7 +275,9 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
           <div className="flex justify-between text-[11px] text-white/60 font-medium mt-1.5">
             <span className={step >= 1 ? 'text-amber-light font-bold' : ''}>1. Space & Budget</span>
             <span className={step >= 2 ? 'text-amber-light font-bold' : ''}>2. Lifestyle Vibe</span>
-            <span className={step >= 3 ? 'text-amber-light font-bold' : ''}>3. KYC Verification</span>
+            <span className={step >= 3 ? 'text-amber-light font-bold' : ''}>
+              {role === 'host' ? '3. Agent Credentials' : '3. Work & College Email'}
+            </span>
           </div>
         </div>
 
@@ -463,142 +561,292 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
             </div>
           )}
 
-          {/* STEP 3: Identity & Trust Verification (Aadhaar / ID Upload) */}
+          {/* STEP 3: Verification (Tenant Email vs Agent Credentials) */}
           {step === 3 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-150">
               
-              <div className="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 flex items-start gap-3">
-                <ShieldCheck className="w-5 h-5 text-forest-emerald shrink-0 mt-0.5" />
-                <div className="text-emerald-950">
-                  <h4 className="font-bold text-xs">Masked Trust Verification Guarantee</h4>
-                  <p className="text-[11px] text-emerald-800 mt-0.5 leading-relaxed">
-                    Documents are encrypted and stored in your private bucket folder. Only verification status badges are visible to prospective flatmates.
-                  </p>
-                </div>
-              </div>
-
-              {/* ID Document Selection */}
-              <div>
-                <label className="block font-bold text-neutral-700 mb-1.5">Document Type</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {role === 'host' ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => setIdType('Electricity Bill')}
-                        className={`p-2.5 rounded-xl font-bold border text-center transition-all ${
-                          idType === 'Electricity Bill' ? 'bg-forest-900 text-white' : 'bg-stone-50 border-stone-200'
-                        }`}
-                      >
-                        Electricity Bill
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIdType('Aadhaar')}
-                        className={`p-2.5 rounded-xl font-bold border text-center transition-all ${
-                          idType === 'Aadhaar' ? 'bg-forest-900 text-white' : 'bg-stone-50 border-stone-200'
-                        }`}
-                      >
-                        Aadhaar Card
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIdType('Passport')}
-                        className={`p-2.5 rounded-xl font-bold border text-center transition-all ${
-                          idType === 'Passport' ? 'bg-forest-900 text-white' : 'bg-stone-50 border-stone-200'
-                        }`}
-                      >
-                        Passport
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => setIdType('Aadhaar')}
-                        className={`p-2.5 rounded-xl font-bold border text-center transition-all ${
-                          idType === 'Aadhaar' ? 'bg-forest-900 text-white' : 'bg-stone-50 border-stone-200'
-                        }`}
-                      >
-                        Aadhaar (Masked)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIdType('Passport')}
-                        className={`p-2.5 rounded-xl font-bold border text-center transition-all ${
-                          idType === 'Passport' ? 'bg-forest-900 text-white' : 'bg-stone-50 border-stone-200'
-                        }`}
-                      >
-                        Passport
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIdType('Electricity Bill')}
-                        className={`p-2.5 rounded-xl font-bold border text-center transition-all ${
-                          idType === 'Electricity Bill' ? 'bg-forest-900 text-white' : 'bg-stone-50 border-stone-200'
-                        }`}
-                      >
-                        Company ID
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Upload Dropzone */}
-              <div 
-                onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-stone-300 hover:border-forest rounded-2xl p-6 text-center cursor-pointer transition-all bg-stone-50/70 hover:bg-forest/5 group"
-              >
-                <input 
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-
-                {previewUrl ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <img 
-                      src={previewUrl} 
-                      alt="ID Preview" 
-                      className="w-32 h-20 object-cover rounded-xl border border-stone-200 shadow-xs" 
-                    />
-                    <p className="font-bold text-xs text-forest flex items-center gap-1">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      {selectedFile?.name || 'Document selected'}
-                    </p>
-                    <span className="text-[11px] text-stone-500 hover:underline">Click to change document</span>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center gap-2">
-                    <div className="w-12 h-12 rounded-full bg-forest/10 text-forest flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Upload className="w-5 h-5" />
+              {role === 'tenant' ? (
+                /* TENANT: Work & College Email Trust Verification (Zero Document Upload) */
+                <div className="space-y-4">
+                  
+                  <div className="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 flex items-start gap-3">
+                    <ShieldCheck className="w-5 h-5 text-forest-emerald shrink-0 mt-0.5" />
+                    <div className="text-emerald-950">
+                      <h4 className="font-bold text-xs flex items-center gap-1.5">
+                        <span>Zero Document Policy for Room Seekers</span>
+                        <span className="text-[10px] bg-emerald-200 text-emerald-900 px-1.5 py-0.2 rounded font-mono font-bold">No Aadhaar</span>
+                      </h4>
+                      <p className="text-[11px] text-emerald-800 mt-0.5 leading-relaxed">
+                        Unlike traditional platforms, Roomzy never asks tenants or flatmates for personal ID documents. Simply verify your official work or college email to unlock verified credibility.
+                      </p>
                     </div>
+                  </div>
+
+                  {/* Verification Mode Selector */}
+                  <div>
+                    <label className="block font-bold text-neutral-700 mb-1.5">
+                      Select Verification Badge Type:
+                    </label>
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setVerificationType('work');
+                          setOtpSent(false);
+                          setEmailVerified(false);
+                          setEmailError(null);
+                        }}
+                        className={`p-3 rounded-2xl border text-left flex items-center gap-3 transition-all ${
+                          verificationType === 'work'
+                            ? 'border-forest bg-forest/5 ring-2 ring-forest/20 shadow-xs'
+                            : 'border-stone-200 hover:bg-stone-50 bg-white'
+                        }`}
+                      >
+                        <div className="w-8 h-8 rounded-xl bg-forest/10 text-forest flex items-center justify-center font-bold shrink-0">
+                          <Briefcase className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-neutral-900 text-xs">Work Professional</p>
+                          <p className="text-[10px] text-neutral-500">Corporate company email</p>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setVerificationType('college');
+                          setOtpSent(false);
+                          setEmailVerified(false);
+                          setEmailError(null);
+                        }}
+                        className={`p-3 rounded-2xl border text-left flex items-center gap-3 transition-all ${
+                          verificationType === 'college'
+                            ? 'border-forest bg-forest/5 ring-2 ring-forest/20 shadow-xs'
+                            : 'border-stone-200 hover:bg-stone-50 bg-white'
+                        }`}
+                      >
+                        <div className="w-8 h-8 rounded-xl bg-amber/20 text-forest flex items-center justify-center font-bold shrink-0">
+                          <GraduationCap className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-neutral-900 text-xs">College Student</p>
+                          <p className="text-[10px] text-neutral-500">.edu / .ac.in email</p>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Email & OTP Input Form */}
+                  <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-3">
                     <div>
-                      <p className="font-bold text-xs text-neutral-800">
-                        Upload {idType} Document
+                      <label className="block font-bold text-neutral-800 text-xs mb-1">
+                        {verificationType === 'work' ? 'Company Work Email' : 'University / College Email'}
+                      </label>
+                      <div className="flex gap-2">
+                        <div className="relative flex-grow">
+                          <Mail className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+                          <input 
+                            type="email"
+                            value={emailInput}
+                            onChange={(e) => {
+                              setEmailInput(e.target.value);
+                              setEmailError(null);
+                            }}
+                            disabled={emailVerified}
+                            placeholder={verificationType === 'work' ? 'e.g. rahul@razorpay.com' : 'e.g. ananya@iitb.ac.in'}
+                            className="w-full bg-white pl-9 pr-3 py-2.5 rounded-xl border border-stone-200 text-neutral-900 font-medium text-xs focus:outline-none focus:ring-2 focus:ring-forest/20 disabled:bg-stone-100 disabled:text-stone-500"
+                          />
+                        </div>
+                        {!emailVerified && (
+                          <button
+                            type="button"
+                            disabled={isSendingOtp || !emailInput.trim()}
+                            onClick={handleSendOtp}
+                            className="bg-forest hover:bg-forest-light disabled:opacity-50 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl shrink-0 transition-colors flex items-center gap-1.5"
+                          >
+                            {isSendingOtp ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>{otpSent ? 'Resend' : 'Send Code'}</span>}
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-stone-500 mt-1">
+                        {verificationType === 'work'
+                          ? 'Enter your official corporate email domain (Gmail, Yahoo, and Outlook personal emails not eligible).'
+                          : 'Enter your verified college email domain (.edu, .ac.in, or university portal).'}
                       </p>
-                      <p className="text-[11px] text-neutral-500 mt-0.5">
-                        Supports JPG, PNG, WEBP, or PDF (Max 10MB)
+                    </div>
+
+                    {/* 6-Digit OTP Field */}
+                    {otpSent && !emailVerified && (
+                      <div className="pt-2 border-t border-stone-200/80 space-y-2 animate-in fade-in duration-150">
+                        <div className="flex items-center justify-between">
+                          <label className="font-bold text-neutral-800 text-xs">Enter 6-Digit Verification Code</label>
+                          {otpCodeHint && (
+                            <span className="text-[10px] font-mono font-bold bg-amber/20 text-stone-900 px-2 py-0.5 rounded-md">
+                              Demo Code: {otpCodeHint}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <div className="relative flex-grow">
+                            <KeyRound className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+                            <input 
+                              type="text"
+                              maxLength={6}
+                              value={otpInput}
+                              onChange={(e) => {
+                                setOtpInput(e.target.value);
+                                setEmailError(null);
+                              }}
+                              placeholder="e.g. 748291 or 123456"
+                              className="w-full bg-white pl-9 pr-3 py-2.5 rounded-xl border border-stone-200 text-neutral-900 font-mono font-bold tracking-wider text-xs focus:outline-none focus:ring-2 focus:ring-forest/20"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            disabled={isVerifyingOtp || !otpInput.trim()}
+                            onClick={handleVerifyOtp}
+                            className="bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white font-bold text-xs px-4 py-2.5 rounded-xl shrink-0 transition-colors flex items-center gap-1.5"
+                          >
+                            {isVerifyingOtp ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>Verify & Unlock</span>}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Email Verification Success State */}
+                    {emailVerified && (
+                      <div className="p-3 bg-emerald-100/70 border border-emerald-300 rounded-xl text-emerald-950 flex items-center gap-2 font-bold text-xs">
+                        <BadgeCheck className="w-4 h-4 text-emerald-700 shrink-0" />
+                        <span>
+                          {verificationType === 'work' ? '💼 Verified Professional' : '🎓 Verified Student'} badge unlocked!
+                        </span>
+                      </div>
+                    )}
+
+                    {emailError && (
+                      <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl flex items-center gap-2 text-xs">
+                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        <span>{emailError}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-3 bg-stone-100/80 rounded-xl text-[11px] text-stone-600 flex items-center justify-between">
+                    <span>Don't have a work or college email right now?</span>
+                    <span className="font-semibold text-stone-800">You can skip and verify anytime!</span>
+                  </div>
+
+                </div>
+              ) : (
+                /* HOST / AGENT: Mandatory Credential Verification (RERA, Broker License, Deed, Utility) */
+                <div className="space-y-4">
+                  
+                  <div className="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 flex items-start gap-3">
+                    <ShieldCheck className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+                    <div className="text-amber-950">
+                      <h4 className="font-bold text-xs">Agent & Host Credential Verification</h4>
+                      <p className="text-[11px] text-amber-900/90 mt-0.5 leading-relaxed">
+                        To maintain a 100% verified zero-brokerage marketplace, all property hosts and agents must provide verifiable business credentials audited by Roomzy Trust Desk.
                       </p>
                     </div>
                   </div>
-                )}
-              </div>
 
-              {uploadSuccess && (
-                <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-xl text-emerald-900 flex items-center gap-2 font-bold text-xs">
-                  <Check className="w-4 h-4 text-emerald-700" />
-                  <span>Verification document uploaded successfully! Aadhaar Verified badge granted.</span>
-                </div>
-              )}
+                  {/* ID Document Selection */}
+                  <div>
+                    <label className="block font-bold text-neutral-700 mb-1.5">Credential Document Type</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { id: 'RERA Registration', label: 'RERA Certificate' },
+                        { id: 'Real Estate Broker License', label: 'Broker License' },
+                        { id: 'Property Deed / Tax Receipt', label: 'Property Deed / Khata' },
+                        { id: 'Electricity Bill', label: 'Electricity / Utility Bill' }
+                      ].map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => setAgentDocType(t.id as any)}
+                          className={`p-2.5 rounded-xl font-bold border text-xs text-left transition-all ${
+                            agentDocType === t.id
+                              ? 'bg-forest text-white border-forest shadow-xs'
+                              : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
+                          }`}
+                        >
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-              {errorMessage && (
-                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl flex items-center gap-2 text-xs">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{errorMessage}</span>
+                  <div>
+                    <label className="block font-bold text-neutral-700 mb-1">
+                      Registration Number or Property Khata No.
+                    </label>
+                    <input 
+                      type="text"
+                      value={agentRegistrationNumber}
+                      onChange={(e) => setAgentRegistrationNumber(e.target.value)}
+                      placeholder="e.g. PRM/KA/RERA/1251/310/PR/180507 or BESCOM RR-091"
+                      className="w-full bg-stone-50 p-2.5 rounded-xl border border-stone-200 text-neutral-900 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-forest/20"
+                    />
+                  </div>
+
+                  {/* Upload Dropzone */}
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="border-2 border-dashed border-stone-300 hover:border-forest rounded-2xl p-5 text-center cursor-pointer transition-all bg-stone-50/70 hover:bg-forest/5 group"
+                  >
+                    <input 
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+
+                    {previewUrl ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <img 
+                          src={previewUrl} 
+                          alt="Credential Preview" 
+                          className="w-32 h-20 object-cover rounded-xl border border-stone-200 shadow-xs" 
+                        />
+                        <p className="font-bold text-xs text-forest flex items-center gap-1">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          {selectedFile?.name || 'Document selected'}
+                        </p>
+                        <span className="text-[11px] text-stone-500 hover:underline">Click to change document</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <div className="w-10 h-10 rounded-full bg-forest/10 text-forest flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Upload className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-xs text-neutral-800">
+                            Upload {agentDocType} Document
+                          </p>
+                          <p className="text-[11px] text-neutral-500 mt-0.5">
+                            Supports PDF, PNG, JPG, or WEBP (Max 10MB)
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {uploadSuccess && (
+                    <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-xl text-emerald-900 flex items-center gap-2 font-bold text-xs">
+                      <Check className="w-4 h-4 text-emerald-700" />
+                      <span>Credentials submitted to Admin Trust Desk for verification review!</span>
+                    </div>
+                  )}
+
+                  {errorMessage && (
+                    <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl flex items-center gap-2 text-xs">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{errorMessage}</span>
+                    </div>
+                  )}
+
                 </div>
               )}
 
@@ -647,17 +895,26 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
               {isUploading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Verifying & Saving...</span>
+                  <span>Saving Profile...</span>
                 </>
               ) : (
                 <>
                   <ShieldCheck className="w-4 h-4 text-amber-light" />
-                  <span>Complete Verification & Save</span>
+                  <span>
+                    {role === 'tenant'
+                      ? (emailVerified ? 'Complete & Save Verified Profile' : 'Complete Onboarding')
+                      : 'Submit Credentials & Complete'}
+                  </span>
                 </>
               )}
             </button>
           )}
         </div>
+
+      </div>
+    </div>
+  );
+};
 
       </div>
     </div>

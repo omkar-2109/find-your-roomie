@@ -267,7 +267,7 @@ export const MarketplacePage: React.FC = () => {
           )}
           {filters.verifiedOnly && (
             <span className="bg-emerald-50 text-emerald-800 px-2.5 py-1 rounded-full font-semibold flex items-center gap-1 border border-emerald-200">
-              Aadhaar Verified Only
+              Verified Profiles Only
               <button onClick={() => updateFilter('verifiedOnly', false)} className="hover:text-emerald-950">×</button>
             </span>
           )}

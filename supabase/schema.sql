@@ -19,6 +19,12 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   company TEXT,
   city TEXT DEFAULT 'Bengaluru',
   user_category TEXT DEFAULT 'working_professional',
+  work_email TEXT,
+  college_email TEXT,
+  is_work_verified BOOLEAN DEFAULT false,
+  is_college_verified BOOLEAN DEFAULT false,
+  is_agent_verified BOOLEAN DEFAULT false,
+  verification_badge TEXT DEFAULT 'Unverified',
   is_aadhaar_verified BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()

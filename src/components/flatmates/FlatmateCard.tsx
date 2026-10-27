@@ -54,9 +54,18 @@ export const FlatmateCard: React.FC<FlatmateCardProps> = ({ flatmate }) => {
                 <h3 className="font-display font-bold text-base text-stone-900 leading-tight">
                   {flatmate.name}
                 </h3>
-                {flatmate.isAadhaarVerified && (
-                  <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-800 font-bold bg-emerald-50 px-1.5 py-0.2 rounded-full border border-emerald-200">
-                    <ShieldCheck className="w-3 h-3 text-emerald-600" /> Verified
+                {(flatmate.isWorkVerified || flatmate.isCollegeVerified || flatmate.verificationBadge || flatmate.isAadhaarVerified) && (
+                  <span className={`inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.2 rounded-full border ${
+                    flatmate.userCategory === 'student' || flatmate.isCollegeVerified
+                      ? 'text-blue-800 bg-blue-50 border-blue-200'
+                      : 'text-emerald-800 bg-emerald-50 border-emerald-200'
+                  }`}>
+                    {flatmate.userCategory === 'student' || flatmate.isCollegeVerified ? (
+                      <GraduationCap className="w-3 h-3 text-blue-600" />
+                    ) : (
+                      <Briefcase className="w-3 h-3 text-emerald-600" />
+                    )}
+                    <span>{flatmate.userCategory === 'student' || flatmate.isCollegeVerified ? 'Verified Student' : 'Verified Pro'}</span>
                   </span>
                 )}
               </div>

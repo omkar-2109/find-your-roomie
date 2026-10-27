@@ -276,7 +276,7 @@ export const ListingDetailPage: React.FC = () => {
               {listing.isVerified && (
                 <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5 text-forest-emerald" />
-                  Aadhaar Verified
+                  Verified Property Host
                 </span>
               )}
             </div>

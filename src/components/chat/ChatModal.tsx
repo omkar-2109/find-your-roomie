@@ -247,7 +247,7 @@ export const ChatModal: React.FC = () => {
                         {otherName}
                       </h4>
                       <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-700 bg-emerald-50 font-bold px-1.5 py-0.5 rounded-full border border-emerald-200">
-                        <ShieldCheck className="w-3 h-3 text-emerald-600" /> Aadhaar Verified
+                        <ShieldCheck className="w-3 h-3 text-emerald-600" /> Verified Member
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-stone-500">

@@ -19,7 +19,9 @@ import {
   Building2,
   CalendarCheck,
   MapPin,
-  MessageSquare
+  MessageSquare,
+  GraduationCap,
+  Briefcase
 } from 'lucide-react';
 import { CategoryType, MetroCity } from '../../types';
 
@@ -259,7 +261,7 @@ export const Navbar: React.FC = () => {
                       alt={currentUser.name}
                       className="w-7 h-7 rounded-full object-cover ring-1 ring-forest/30"
                     />
-                    {currentUser.isAadhaarVerified && (
+                    {(currentUser.isWorkVerified || currentUser.isCollegeVerified || currentUser.isAgentVerified || currentUser.isAadhaarVerified) && (
                       <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
                     )}
                   </div>
@@ -275,10 +277,24 @@ export const Navbar: React.FC = () => {
                     <div className="p-2 border-b border-stone-100">
                       <p className="font-bold text-xs text-stone-900">{currentUser.name}</p>
                       <p className="text-[11px] text-stone-500 truncate">{currentUser.email}</p>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <span className="inline-flex items-center gap-1 text-[10px] text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                          <ShieldCheck className="w-3 h-3 text-emerald-600" /> Aadhaar Verified
-                        </span>
+                      <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                        {currentUser.isAgentVerified ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] text-amber-900 font-bold bg-amber/20 px-2 py-0.5 rounded-full border border-amber/40">
+                            <ShieldCheck className="w-3 h-3 text-amber-700" /> Verified Agent
+                          </span>
+                        ) : currentUser.isCollegeVerified || currentUser.verificationBadge === 'Verified Student' ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] text-blue-900 font-bold bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                            <GraduationCap className="w-3 h-3 text-blue-600" /> Verified Student
+                          </span>
+                        ) : currentUser.isWorkVerified || currentUser.verificationBadge === 'Verified Professional' || currentUser.isAadhaarVerified ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                            <Briefcase className="w-3 h-3 text-emerald-600" /> Verified Pro
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[10px] text-stone-600 font-medium bg-stone-100 px-2 py-0.5 rounded-full">
+                            Member
+                          </span>
+                        )}
                         <span className="text-[10px] text-stone-500 font-semibold capitalize px-2 py-0.5 rounded-full bg-stone-100">
                           {currentUser.role}
                         </span>

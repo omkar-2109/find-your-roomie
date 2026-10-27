@@ -18,6 +18,9 @@ export const INITIAL_DEMO_FLATMATES: FlatmateProfile[] = [
     occupation: 'Product Designer',
     userCategory: 'working_professional',
     companyOrCollege: 'Razorpay',
+    workOrCollegeEmail: 'ananya@razorpay.com',
+    isWorkVerified: true,
+    verificationBadge: 'Verified Professional',
     isAadhaarVerified: true,
     lifestyle: {
       dietary: 'Veg / Non-Veg Friendly',
@@ -47,6 +50,9 @@ export const INITIAL_DEMO_FLATMATES: FlatmateProfile[] = [
     occupation: 'Backend Engineer',
     userCategory: 'working_professional',
     companyOrCollege: 'Swiggy',
+    workOrCollegeEmail: 'rohit@swiggy.in',
+    isWorkVerified: true,
+    verificationBadge: 'Verified Professional',
     isAadhaarVerified: true,
     lifestyle: {
       dietary: 'Pure Veg',
@@ -76,6 +82,9 @@ export const INITIAL_DEMO_FLATMATES: FlatmateProfile[] = [
     occupation: 'Brand Strategist',
     userCategory: 'working_professional',
     companyOrCollege: 'Dentsu Creative',
+    workOrCollegeEmail: 'priya@dentsu.com',
+    isWorkVerified: true,
+    verificationBadge: 'Verified Professional',
     isAadhaarVerified: true,
     lifestyle: {
       dietary: 'Flexible',
@@ -105,6 +114,9 @@ export const INITIAL_DEMO_FLATMATES: FlatmateProfile[] = [
     occupation: 'AI Research Scholar',
     userCategory: 'student',
     companyOrCollege: 'IIT Bombay',
+    workOrCollegeEmail: 'aditya@iitb.ac.in',
+    isCollegeVerified: true,
+    verificationBadge: 'Verified Student',
     isAadhaarVerified: true,
     lifestyle: {
       dietary: 'Veg / Non-Veg Friendly',
@@ -134,6 +146,9 @@ export const INITIAL_DEMO_FLATMATES: FlatmateProfile[] = [
     occupation: 'Fintech Analyst',
     userCategory: 'working_professional',
     companyOrCollege: 'Goldman Sachs',
+    workOrCollegeEmail: 'varun@gs.com',
+    isWorkVerified: true,
+    verificationBadge: 'Verified Professional',
     isAadhaarVerified: true,
     lifestyle: {
       dietary: 'Flexible',
@@ -163,6 +178,9 @@ export const INITIAL_DEMO_FLATMATES: FlatmateProfile[] = [
     occupation: 'Management Consultant',
     userCategory: 'working_professional',
     companyOrCollege: 'BCG Gurgaon',
+    workOrCollegeEmail: 'simran@bcg.com',
+    isWorkVerified: true,
+    verificationBadge: 'Verified Professional',
     isAadhaarVerified: true,
     lifestyle: {
       dietary: 'Pure Veg',
